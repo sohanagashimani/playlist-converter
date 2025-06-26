@@ -74,7 +74,6 @@ jobs:
           region: ${{ env.REGION }}
           env_vars: |
             NODE_ENV=production
-            PORT=8080
             YTMUSIC_SERVICE_URL=https://playlist-converter-ytmusic-200375359052.asia-south1.run.app
             SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
             SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
