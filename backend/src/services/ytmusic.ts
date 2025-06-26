@@ -11,9 +11,13 @@ class YTMusicService {
   /**
    * Get authentication headers for service-to-service calls (currently disabled)
    */
-  private async getAuthHeaders(): Promise<{ [key: string]: string }> {
+  private async getAuthHeaders(
+    silent: boolean = false
+  ): Promise<{ [key: string]: string }> {
     // Temporarily disabled authentication for simplicity
-    console.log("🔓 Using unauthenticated requests to ytmusic service");
+    if (!silent) {
+      console.log("🔓 Using unauthenticated requests to ytmusic service");
+    }
     return {};
   }
 
@@ -198,7 +202,7 @@ class YTMusicService {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const headers = await this.getAuthHeaders();
+      const headers = await this.getAuthHeaders(true); // Silent mode for health checks
       const response = await axios.get(`${this.baseUrl}/health`, {
         timeout: 5000,
         headers,
