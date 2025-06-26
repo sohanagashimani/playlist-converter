@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Form, Input, Button, Typography, Alert } from "antd";
+import { Form, Input, Button, Typography, Collapse } from "antd";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
+const { Panel } = Collapse;
 
 interface ConversionFormProps {
   onSubmit: (spotifyUrl: string) => void;
@@ -41,25 +43,36 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ onSubmit }) => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Alert
-        message="How to get a Spotify playlist URL"
-        description={
-          <ol className="list-decimal list-inside space-y-1 mt-2">
-            <li>
-              Open Spotify and navigate to the playlist you want to convert
-            </li>
-            <li>
-              Make sure the playlist is set to <strong>Public</strong>
-            </li>
-            <li>Click the three dots (⋯) menu</li>
-            <li>Select "Share" → "Copy link to playlist"</li>
-            <li>Paste the URL below</li>
-          </ol>
-        }
-        type="info"
-        showIcon
-        className="md:mb-6 mb-4 p-3 md:p-4"
-      />
+      {/* Compact Help Section */}
+      <div className="mb-4">
+        <Collapse ghost size="small">
+          <Panel
+            header={
+              <Text className="text-sm text-gray-600">
+                <QuestionCircleOutlined className="mr-2" />
+                Need help finding your playlist URL?
+              </Text>
+            }
+            key="1"
+          >
+            <div className="text-sm text-gray-600 space-y-2 pb-2">
+              <div>1. Open your playlist in Spotify</div>
+              <div>
+                2. Make sure it's set to{" "}
+                <span className="px-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                  Public
+                </span>
+              </div>
+              <div>
+                3. Click the three dots (⋯) → Share → Copy link to playlist
+              </div>
+              <div className="text-xs text-amber-600 mt-2">
+                💡 Only public playlists can be converted
+              </div>
+            </div>
+          </Panel>
+        </Collapse>
+      </div>
 
       <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
         <Form.Item
@@ -99,13 +112,6 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ onSubmit }) => {
           </Button>
         </Form.Item>
       </Form>
-
-      <div className="text-center mt-4">
-        <Text type="secondary" className="text-sm">
-          Only public playlists can be converted. Make sure your playlist is set
-          to public in Spotify.
-        </Text>
-      </div>
     </div>
   );
 };

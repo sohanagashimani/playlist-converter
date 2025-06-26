@@ -82,7 +82,7 @@ export const useConversion = () => {
               setProgress({ stage: "cancelled", progress: 0 });
               setShowStatusChecker(false);
               localStorage.removeItem("conversionId");
-              message.info("Conversion was cancelled");
+              message.info("Conversion terminated");
             }
 
             // Handle failed conversion

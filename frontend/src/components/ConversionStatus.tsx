@@ -94,13 +94,19 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Alert
-        message="Conversion in Progress"
-        description="Your playlist conversion is running in the background. Updates happen automatically in real-time!"
-        type="info"
-        showIcon
-        className="mb-6"
-      />
+      {/* Simple, nicer alert */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <div>
+            <h3 className="text-sm font-medium text-blue-800 mb-1">
+              Conversion in Progress
+            </h3>
+            <p className="text-sm text-blue-700">
+              Your playlist is being converted. Stay tuned!
+            </p>
+          </div>
+        </div>
+      </div>
 
       <Card className="bg-white rounded-lg shadow-md">
         <div className="space-y-6">

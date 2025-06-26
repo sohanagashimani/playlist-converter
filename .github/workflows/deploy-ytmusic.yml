@@ -1,7 +1,9 @@
 name: Deploy YTMusic Microservice to Cloud Run
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 env:
   PROJECT_ID: resounding-age-438010-g3

@@ -38,20 +38,36 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-100 md:p-6 hover:shadow-lg transition-shadow p-4">
-      {/* Service Flow Indicator */}
-      <div className="flex items-center justify-center space-x-4 mb-8">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-            <SpotifyIcon className="w-5 h-5 text-white" />
+      {/* Simple Service Flow Indicator */}
+      <div className="flex items-center justify-center space-x-6 mb-8">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+            <SpotifyIcon className="w-6 h-6 text-white" />
           </div>
-          <Text strong>Spotify</Text>
+          <div>
+            <Text strong className="text-gray-800">
+              Spotify
+            </Text>
+            <div className="text-xs text-gray-500">Your playlist</div>
+          </div>
         </div>
-        <ArrowRightIcon className="h-6 w-6 text-gray-400" />
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-            <YouTubeMusicIcon className="w-5 h-5 text-white" />
+
+        <div className="flex items-center space-x-2 text-gray-400">
+          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+          <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+          <ArrowRightIcon className="h-5 w-5" />
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
+            <YouTubeMusicIcon className="w-6 h-6 text-white" />
           </div>
-          <Text strong>YouTube Music</Text>
+          <div>
+            <Text strong className="text-gray-800">
+              YouTube Music
+            </Text>
+            <div className="text-xs text-gray-500">Converted playlist</div>
+          </div>
         </div>
       </div>
 
