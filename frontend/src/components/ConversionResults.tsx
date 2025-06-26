@@ -2,30 +2,25 @@ import React, { useState } from "react";
 import {
   Button,
   Card,
-  Typography,
-  Alert,
-  Statistic,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Input,
-  Pagination,
-  Empty,
-  Table,
-  Radio,
-} from "antd";
+  Badge,
+} from "@/components/ui";
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  LinkOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  AppstoreOutlined,
-  BarsOutlined,
-} from "@ant-design/icons";
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  RotateCcw,
+  Search,
+  Grid3X3,
+  List,
+  Copy,
+} from "lucide-react";
 import TrackCard from "./TrackCard";
 import { getTrackTableColumns } from "./TrackTableColumns";
 import type { ConversionResult } from "../types";
-
-const { Title, Text, Link } = Typography;
-const { Search } = Input;
 
 interface ConversionResultsProps {
   result: ConversionResult;
@@ -58,6 +53,7 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedTracks = filteredTracks.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredTracks.length / pageSize);
 
   const successRate = Math.round(
     (result.successfulTracks / result.totalTracks) * 100
@@ -71,267 +67,363 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
     setCurrentPage(1);
   };
 
-  // Get table columns
-  const tableColumns = getTrackTableColumns();
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
 
   return (
     <div className="space-y-6">
       {/* Success Alert */}
-      <Alert
-        message="Conversion Completed!"
-        description={
-          <div>
-            <p>
-              Your playlist has been successfully converted to YouTube Music.
-              {result.ytMusicPlaylistUrl && (
-                <>
-                  {" "}
-                  <Link
-                    href={result.ytMusicPlaylistUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold"
-                  >
-                    Click here to open your new YouTube Music playlist{" "}
-                    <LinkOutlined />
-                  </Link>
-                </>
-              )}
-            </p>
+      <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
+                Conversion Completed!
+              </h3>
+              <div className="text-green-700 dark:text-green-300">
+                <p>
+                  Your playlist has been successfully converted to YouTube
+                  Music.
+                  {result.ytMusicPlaylistUrl && (
+                    <>
+                      {" "}
+                      <a
+                        href={result.ytMusicPlaylistUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold underline hover:no-underline inline-flex items-center gap-1"
+                      >
+                        Click here to open your new YouTube Music playlist
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
-        }
-        type="success"
-        showIcon
-        className="slide-in"
-      />
+        </CardContent>
+      </Card>
 
       {/* Statistics */}
-      <Card className="card">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <Statistic
-            title="Total Tracks"
-            value={result.totalTracks}
-            valueStyle={{ color: "#1890ff" }}
-          />
-          <Statistic
-            title="Successful"
-            value={result.successfulTracks}
-            valueStyle={{ color: "#52c41a" }}
-            suffix={<CheckCircleOutlined />}
-          />
-          <Statistic
-            title="Failed"
-            value={result.failedTracks}
-            valueStyle={{ color: "#ff4d4f" }}
-            suffix={<CloseCircleOutlined />}
-          />
-          <Statistic
-            title="Success Rate"
-            value={successRate}
-            precision={0}
-            valueStyle={{
-              color:
-                successRate >= 80
-                  ? "#52c41a"
-                  : successRate >= 60
-                  ? "#faad14"
-                  : "#ff4d4f",
-            }}
-            suffix="%"
-          />
-        </div>
+      <Card className="modern-card">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-primary">
+                {result.totalTracks}
+              </div>
+              <div className="text-sm text-muted-foreground">Total Tracks</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-green-600 flex items-center justify-center gap-2">
+                {result.successfulTracks}
+                <CheckCircle className="h-5 w-5" />
+              </div>
+              <div className="text-sm text-muted-foreground">Successful</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-red-600 flex items-center justify-center gap-2">
+                {result.failedTracks}
+                <XCircle className="h-5 w-5" />
+              </div>
+              <div className="text-sm text-muted-foreground">Failed</div>
+            </div>
+            <div className="space-y-2">
+              <div
+                className={`text-2xl font-bold ${
+                  successRate >= 80
+                    ? "text-green-600"
+                    : successRate >= 60
+                    ? "text-yellow-600"
+                    : "text-red-600"
+                }`}
+              >
+                {successRate}%
+              </div>
+              <div className="text-sm text-muted-foreground">Success Rate</div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Playlist Information */}
       {result.ytMusicPlaylist && (
-        <Card className="card">
-          <Title level={4}>YouTube Music Playlist</Title>
-          <div className="space-y-2">
+        <Card className="modern-card">
+          <CardHeader>
+            <CardTitle>YouTube Music Playlist</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             <div>
-              <Text strong>Title: </Text>
-              <Text>{result.ytMusicPlaylist.title}</Text>
+              <span className="font-medium">Title: </span>
+              <span>{result.ytMusicPlaylist.title}</span>
             </div>
             {result.ytMusicPlaylist.description && (
               <div>
-                <Text strong>Description: </Text>
-                <Text type="secondary">
+                <span className="font-medium">Description: </span>
+                <span className="text-muted-foreground">
                   {result.ytMusicPlaylist.description}
-                </Text>
+                </span>
               </div>
             )}
-            <div>
-              <Text strong>Playlist URL: </Text>
-              <Link
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Playlist URL: </span>
+              <a
                 href={result.ytMusicPlaylistUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                copyable
+                className="text-primary hover:underline flex items-center gap-1"
               >
                 {result.ytMusicPlaylistUrl}
-              </Link>
+                <ExternalLink className="h-4 w-4" />
+              </a>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyToClipboard(result.ytMusicPlaylistUrl)}
+                className="h-8 w-8 p-0"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
+          </CardContent>
         </Card>
       )}
 
       {/* Track Details */}
-      <Card className="card">
-        <div className="flex flex-col space-y-4 mb-6">
-          {/* Header with title and controls */}
+      <Card className="modern-card">
+        <CardHeader>
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
-            <Title level={4} className="!mb-0">
+            <CardTitle>
               Track Conversion Details ({result.totalTracks} tracks)
-            </Title>
+            </CardTitle>
             <Button
-              icon={<ReloadOutlined />}
+              variant="outline"
               onClick={onReset}
-              className="btn-secondary lg:order-last"
+              className="flex items-center gap-2"
             >
+              <RotateCcw className="h-4 w-4" />
               Convert Another Playlist
             </Button>
           </div>
-
+        </CardHeader>
+        <CardContent className="space-y-6">
           {/* Controls row */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <Search
-              placeholder="Search tracks..."
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              style={{ width: 280 }}
-              prefix={<SearchOutlined />}
-              allowClear
-            />
-
-            {/* View Toggle */}
-            <div className="flex items-center space-x-2 hidden md:block">
-              <Text className="text-sm text-gray-600 whitespace-nowrap">
-                View:
-              </Text>
-              <Radio.Group
-                value={viewMode}
-                onChange={e => handleViewModeChange(e.target.value)}
-                buttonStyle="solid"
-                size="small"
-              >
-                <Radio.Button value="cards">
-                  <AppstoreOutlined /> Cards
-                </Radio.Button>
-                <Radio.Button value="table">
-                  <BarsOutlined /> Table
-                </Radio.Button>
-              </Radio.Group>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        {paginatedTracks.length > 0 ? (
-          <>
-            {viewMode === "cards" ? (
-              /* Card Grid View */
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 max-h-96 overflow-y-auto md:max-h-none">
-                {[...paginatedTracks].map((track, index) => (
-                  <TrackCard
-                    key={`${track.originalTitle}-${track.originalArtist}-${
-                      startIndex + index
-                    }`}
-                    track={track}
-                    index={startIndex + index}
-                  />
-                ))}
-              </div>
-            ) : (
-              /* Compact Table View */
-              <div className="mb-6">
-                <Table
-                  columns={tableColumns}
-                  dataSource={paginatedTracks}
-                  rowKey={(record, index) =>
-                    `${record.originalTitle}-${record.originalArtist}-${
-                      startIndex + (index || 0)
-                    }`
-                  }
-                  pagination={false}
-                  size="small"
-                  scroll={{ x: true }}
-                  rowClassName={record =>
-                    record.success
-                      ? "bg-green-50 hover:bg-green-100"
-                      : "bg-red-50 hover:bg-red-100"
-                  }
-                />
-              </div>
-            )}
-
-            {/* Pagination */}
-            <div className="flex justify-center">
-              <Pagination
-                current={currentPage}
-                pageSize={pageSize}
-                total={filteredTracks.length}
-                showSizeChanger
-                pageSizeOptions={
-                  viewMode === "cards"
-                    ? ["6", "12", "24"]
-                    : ["10", "20", "50", "100"]
-                }
-                showQuickJumper
-                showTotal={(total, range) =>
-                  `${range[0]}-${range[1]} of ${total} tracks`
-                }
-                onChange={(page, size) => {
-                  setCurrentPage(page);
-                  if (size !== pageSize) {
-                    setPageSize(size);
-                    setCurrentPage(1);
-                  }
-                }}
-                onShowSizeChange={(_current, size) => {
-                  setPageSize(size);
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search tracks..."
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
+                className="pl-10"
               />
             </div>
-          </>
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              searchTerm
-                ? `No tracks found matching "${searchTerm}"`
-                : "No tracks to display"
-            }
-          />
-        )}
+
+            {/* View Toggle */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                View:
+              </span>
+              <div className="flex rounded-md border border-border">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => handleViewModeChange("cards")}
+                  className="rounded-r-none flex items-center gap-2"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                  Cards
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => handleViewModeChange("table")}
+                  className="rounded-l-none flex items-center gap-2"
+                >
+                  <List className="h-4 w-4" />
+                  Table
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Area */}
+          {paginatedTracks.length > 0 ? (
+            <>
+              {viewMode === "cards" ? (
+                /* Card Grid View */
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                  {paginatedTracks.map((track, index) => (
+                    <TrackCard
+                      key={`${track.originalTitle}-${track.originalArtist}-${
+                        startIndex + index
+                      }`}
+                      track={track}
+                      index={startIndex + index}
+                    />
+                  ))}
+                </div>
+              ) : (
+                /* Simple Table View - simplified for now */
+                <div className="space-y-2 mb-6">
+                  {paginatedTracks.map((track, index) => (
+                    <div
+                      key={`${track.originalTitle}-${track.originalArtist}-${
+                        startIndex + index
+                      }`}
+                      className={`p-4 rounded-lg border ${
+                        track.success
+                          ? "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
+                          : "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
+                      }`}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                        <div>
+                          <div className="font-medium">
+                            {track.originalTitle}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {track.originalArtist}
+                          </div>
+                        </div>
+                        <div>
+                          {track.ytMusicResult ? (
+                            <>
+                              <div className="font-medium">
+                                {track.ytMusicResult.title}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {track.ytMusicResult.artists
+                                  .map(artist =>
+                                    typeof artist === "string"
+                                      ? artist
+                                      : artist.name
+                                  )
+                                  .join(", ")}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              No match found
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <Badge
+                            variant={track.success ? "default" : "destructive"}
+                            className="flex items-center gap-1 w-fit"
+                          >
+                            {track.success ? (
+                              <CheckCircle className="h-3 w-3" />
+                            ) : (
+                              <XCircle className="h-3 w-3" />
+                            )}
+                            {track.success ? "Converted" : "Failed"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {track.spotifyUrl && (
+                            <a
+                              href={track.spotifyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                          {track.ytMusicResult && (
+                            <a
+                              href={`https://music.youtube.com/watch?v=${track.ytMusicResult.videoId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Simple Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-muted-foreground">
+                {searchTerm
+                  ? `No tracks found matching "${searchTerm}"`
+                  : "No tracks to display"}
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* Conversion Info */}
-      <Card className="card">
-        <Title level={5}>Conversion Information</Title>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <Text strong>Conversion ID: </Text>
-            <Text code>{result.conversionId}</Text>
+      <Card className="modern-card">
+        <CardHeader>
+          <CardTitle className="text-lg">Conversion Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-medium">Conversion ID: </span>
+              <code className="px-2 py-1 bg-muted rounded text-xs">
+                {result.conversionId}
+              </code>
+            </div>
+            <div>
+              <span className="font-medium">Completed: </span>
+              <span>{new Date(result.timestamp).toLocaleString()}</span>
+            </div>
+            <div className="md:col-span-2">
+              <span className="font-medium">Original Playlist: </span>
+              <a
+                href={result.spotifyPlaylistUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-green-600 hover:underline inline-flex items-center gap-1"
+              >
+                Open in Spotify <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
           </div>
-          <div>
-            <Text strong>Completed: </Text>
-            <Text>{new Date(result.timestamp).toLocaleString()}</Text>
-          </div>
-          <div>
-            <Text strong>Original Playlist: </Text>
-            <Link
-              href={result.spotifyPlaylistUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-600"
-            >
-              Open in Spotify <LinkOutlined />
-            </Link>
-          </div>
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

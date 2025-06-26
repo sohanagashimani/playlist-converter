@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { Form, Input, Button, Typography, Alert } from "antd";
 import { PlayIcon } from "@heroicons/react/24/solid";
-
-const { Text } = Typography;
+import {
+  Button,
+  Input,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui";
+import { AlertCircle } from "lucide-react";
 
 interface ConversionFormProps {
   onSubmit: (spotifyUrl: string) => void;
 }
 
 const ConversionForm: React.FC<ConversionFormProps> = ({ onSubmit }) => {
-  const [form] = Form.useForm();
+  const [spotifyUrl, setSpotifyUrl] = useState("");
+  const [error, setError] = useState("");
   const [isValidating, setIsValidating] = useState(false);
 
   const validateSpotifyUrl = (url: string): boolean => {
@@ -18,16 +25,17 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ onSubmit }) => {
     return spotifyPlaylistRegex.test(url);
   };
 
-  const handleSubmit = async (values: { spotifyUrl: string }) => {
-    const { spotifyUrl } = values;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!spotifyUrl.trim()) {
+      setError("Please enter a Spotify playlist URL");
+      return;
+    }
 
     if (!validateSpotifyUrl(spotifyUrl)) {
-      form.setFields([
-        {
-          name: "spotifyUrl",
-          errors: ["Please enter a valid Spotify playlist URL"],
-        },
-      ]);
+      setError("Please enter a valid Spotify playlist URL");
       return;
     }
 
@@ -40,72 +48,74 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ onSubmit }) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Alert
-        message="How to get a Spotify playlist URL"
-        description={
-          <ol className="list-decimal list-inside space-y-1 mt-2">
-            <li>
-              Open Spotify and navigate to the playlist you want to convert
-            </li>
-            <li>
-              Make sure the playlist is set to <strong>Public</strong>
-            </li>
-            <li>Click the three dots (⋯) menu</li>
-            <li>Select "Share" → "Copy link to playlist"</li>
-            <li>Paste the URL below</li>
-          </ol>
-        }
-        type="info"
-        showIcon
-        className="md:mb-6 mb-4 p-3 md:p-4"
-      />
+    <div className="max-w-2xl mx-auto space-y-6">
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <AlertCircle className="h-5 w-5 text-primary" />
+            How to get a Spotify playlist URL
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <div className="list-decimal list-inside space-y-1">
+            <div>
+              1. Open Spotify and navigate to the playlist you want to convert
+            </div>
+            <div>
+              2. Make sure the playlist is set to{" "}
+              <strong className="text-foreground">Public</strong>
+            </div>
+            <div>3. Click the three dots (⋯) menu</div>
+            <div>4. Select "Share" → "Copy link to playlist"</div>
+            <div>5. Paste the URL below</div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
-        <Form.Item
-          name="spotifyUrl"
-          label={<Text strong>Spotify Playlist URL</Text>}
-          rules={[
-            { required: true, message: "Please enter a Spotify playlist URL" },
-            {
-              validator: (_, value) => {
-                if (!value || validateSpotifyUrl(value)) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(
-                  new Error("Please enter a valid Spotify playlist URL")
-                );
-              },
-            },
-          ]}
-        >
-          <Input
-            placeholder="https://open.spotify.com/playlist/..."
-            className="input-field"
-            prefix={<span className="text-green-500 font-bold">♫</span>}
-          />
-        </Form.Item>
-
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={isValidating}
-            size="large"
-            icon={<PlayIcon className="h-5 w-5" />}
-            className="w-full btn-tuneswap h-12 text-lg"
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label
+            htmlFor="spotifyUrl"
+            className="text-sm font-medium text-foreground"
           >
-            {isValidating ? "Validating..." : "Start Swapping"}
-          </Button>
-        </Form.Item>
-      </Form>
+            Spotify Playlist URL
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 font-bold text-lg">
+              ♫
+            </span>
+            <Input
+              id="spotifyUrl"
+              type="url"
+              value={spotifyUrl}
+              onChange={e => setSpotifyUrl(e.target.value)}
+              placeholder="https://open.spotify.com/playlist/..."
+              className="pl-10 h-12"
+            />
+          </div>
+          {error && (
+            <p className="text-sm text-destructive flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </p>
+          )}
+        </div>
 
-      <div className="text-center mt-4">
-        <Text type="secondary" className="text-sm">
-          Only public playlists can be converted. Make sure your playlist is set
-          to public in Spotify.
-        </Text>
-      </div>
+        <Button
+          type="submit"
+          disabled={isValidating}
+          size="lg"
+          className="w-full h-12 text-lg modern-button"
+        >
+          <PlayIcon className="h-5 w-5 mr-2" />
+          {isValidating ? "Validating..." : "Start Swapping"}
+        </Button>
+      </form>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Only public playlists can be converted. Make sure your playlist is set
+        to public in Spotify.
+      </p>
     </div>
   );
 };

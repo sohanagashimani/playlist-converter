@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { Card, Button, Typography, Progress, Alert, Spin, message } from "antd";
+import { Card, CardContent, Button, Progress, useToast } from "@/components/ui";
 import {
   EyeIcon,
   CheckCircleIcon,
   XCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { Loader2, AlertCircle } from "lucide-react";
 import apiService from "../services/api";
 import type { ConversionResult, ConversionProgress } from "../types";
-
-const { Title, Text } = Typography;
 
 interface ConversionStatusProps {
   conversionId: string;
@@ -24,14 +23,16 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
   onViewResults,
   onReset,
 }) => {
+  const { showToast } = useToast();
   const [cancelling, setCancelling] = useState(false);
 
   const handleCancel = async () => {
     setCancelling(true);
     try {
       await apiService.cancelConversion(conversionId);
+      showToast("Conversion cancelled successfully", "info");
     } catch {
-      message.error("Something went wrong. Please try again.");
+      showToast("Failed to cancel conversion", "error");
     } finally {
       setCancelling(false);
     }
@@ -64,13 +65,13 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
   const getStatusIcon = () => {
     switch (progress.stage) {
       case "completed":
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+        return <CheckCircleIcon className="h-6 w-6 text-green-500" />;
       case "failed":
-        return <XCircleIcon className="h-5 w-5 text-red-500" />;
+        return <XCircleIcon className="h-6 w-6 text-red-500" />;
       case "cancelled":
-        return <XMarkIcon className="h-5 w-5 text-orange-500" />;
+        return <XMarkIcon className="h-6 w-6 text-orange-500" />;
       default:
-        return <Spin size="small" />;
+        return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
     }
   };
 
@@ -94,81 +95,99 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Alert
-        message="Conversion in Progress"
-        description="Your playlist conversion is running in the background. Updates happen automatically in real-time!"
-        type="info"
-        showIcon
-        className="mb-6"
-      />
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-primary" />
+            <div>
+              <h4 className="font-medium">Conversion in Progress</h4>
+              <p className="text-sm text-muted-foreground">
+                Your playlist conversion is running in the background. Updates
+                happen automatically in real-time!
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Card className="bg-white rounded-lg shadow-md">
-        <div className="space-y-6">
-          <div className="text-center">
-            <Title level={3}>Conversion Status</Title>
-            <Text className="text-gray-500">Conversion ID: {conversionId}</Text>
+      <Card className="modern-card">
+        <CardContent className="p-8 space-y-6">
+          <div className="text-center space-y-2">
+            <h3 className="text-2xl font-semibold">Conversion Status</h3>
+            <p className="text-sm text-muted-foreground">
+              Conversion ID: {conversionId}
+            </p>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center space-x-3">
               {getStatusIcon()}
-              <Text strong>{getStatusMessage()}</Text>
+              <span className="font-medium text-lg">{getStatusMessage()}</span>
             </div>
 
-            <Progress
-              percent={getProgressPercent()}
-              status={
-                progress.stage === "failed"
-                  ? "exception"
-                  : progress.stage === "cancelled"
-                  ? "exception"
-                  : "active"
-              }
-              showInfo={true}
-            />
-
-            {/* Show track processing info during search phase */}
-            {progress.processed !== undefined && progress.total && (
-              <Text className="text-sm text-gray-500">
-                Processed {progress.processed} of {progress.total} tracks
-              </Text>
-            )}
+            <div className="space-y-2">
+              <Progress value={getProgressPercent()} className="h-3" />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>{getProgressPercent()}% complete</span>
+                {progress.processed !== undefined && progress.total && (
+                  <span>
+                    {progress.processed} / {progress.total} tracks
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="flex space-x-4 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center pt-4 border-t border-border">
             {progress.stage === "completed" && (
               <Button
-                type="primary"
-                icon={<EyeIcon className="h-4 w-4" />}
                 onClick={handleViewResults}
+                className="flex items-center gap-2"
               >
+                <EyeIcon className="h-4 w-4" />
                 View Results
               </Button>
             )}
 
-            <Button onClick={onReset}>Start New Conversion</Button>
+            <Button variant="outline" onClick={onReset}>
+              Start New Conversion
+            </Button>
 
             {isConversionActive() && (
               <Button
-                type="primary"
-                icon={<XMarkIcon className="h-4 w-4" />}
+                variant="destructive"
                 onClick={handleCancel}
-                loading={cancelling}
+                disabled={cancelling}
+                className="flex items-center gap-2"
               >
-                Cancel
+                {cancelling ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <XMarkIcon className="h-4 w-4" />
+                )}
+                {cancelling ? "Cancelling..." : "Cancel"}
               </Button>
             )}
           </div>
 
           {progress.stage === "failed" && (
-            <Alert
-              message="Conversion Failed"
-              description="Something went wrong. Please try again."
-              type="error"
-              showIcon
-            />
+            <Card className="border-destructive/20 bg-destructive/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <XCircleIcon className="h-5 w-5 text-destructive" />
+                  <div>
+                    <h4 className="font-medium text-destructive">
+                      Conversion Failed
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Something went wrong. Please try again.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

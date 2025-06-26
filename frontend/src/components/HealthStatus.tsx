@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Badge, Tooltip, Button } from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
+import { Button } from "@/components/ui";
+import { RefreshCw, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import apiService from "../services/api";
 
 const HealthStatus: React.FC = () => {
@@ -36,47 +36,48 @@ const HealthStatus: React.FC = () => {
     checkHealth();
   }, []);
 
-  const getOverallStatus = () => {
-    if (status.loading) return "processing";
-    if (status.backend && status.ytmusicService) return "success";
-    if (status.backend && !status.ytmusicService) return "warning";
-    return "error";
+  const getStatusIcon = () => {
+    if (status.loading) return <RefreshCw className="h-4 w-4 animate-spin" />;
+    if (status.backend && status.ytmusicService)
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (status.backend && !status.ytmusicService)
+      return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+    return <XCircle className="h-4 w-4 text-red-500" />;
   };
 
   const getStatusText = () => {
-    if (status.loading) return "Checking services...";
-    if (status.backend && status.ytmusicService)
-      return "All services operational";
+    if (status.loading) return "Checking...";
+    if (status.backend && status.ytmusicService) return "All services online";
     if (status.backend && !status.ytmusicService)
-      return "YouTube Music service unavailable";
-    return "Services unavailable";
+      return "YouTube Music unavailable";
+    return "Services offline";
+  };
+
+  const getStatusColor = () => {
+    if (status.loading) return "text-muted-foreground";
+    if (status.backend && status.ytmusicService) return "text-green-600";
+    if (status.backend && !status.ytmusicService) return "text-yellow-600";
+    return "text-red-600";
   };
 
   return (
-    <div className="flex items-center space-x-2">
-      <Tooltip
-        title={
-          <div className="space-y-1">
-            <div>
-              Backend API: {status.backend ? "✅ Online" : "❌ Offline"}
-            </div>
-            <div>
-              YouTube Music Service:{" "}
-              {status.ytmusicService ? "✅ Online" : "❌ Offline"}
-            </div>
-          </div>
-        }
-      >
-        <Badge status={getOverallStatus()} text={getStatusText()} />
-      </Tooltip>
+    <div className="flex items-center space-x-3 text-sm">
+      <div className={`flex items-center space-x-2 ${getStatusColor()}`}>
+        {getStatusIcon()}
+        <span className="hidden lg:inline">{getStatusText()}</span>
+      </div>
 
       <Button
-        type="text"
-        size="small"
-        icon={<ReloadOutlined spin={status.loading} />}
+        variant="ghost"
+        size="sm"
         onClick={checkHealth}
-        className="text-gray-500"
-      />
+        disabled={status.loading}
+        className="h-8 w-8 p-0"
+      >
+        <RefreshCw
+          className={`h-4 w-4 ${status.loading ? "animate-spin" : ""}`}
+        />
+      </Button>
     </div>
   );
 };

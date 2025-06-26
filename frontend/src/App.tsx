@@ -1,12 +1,9 @@
-import { Layout } from "antd";
 import AppHeader from "./components/AppHeader";
 import HeroSection from "./components/HeroSection";
 import ConversionFlow from "./components/ConversionFlow";
 import FeatureCards from "./components/FeatureCards";
 import AppFooter from "./components/AppFooter";
 import { useConversion } from "./hooks/useConversion";
-
-const { Content } = Layout;
 
 function App() {
   const {
@@ -22,11 +19,11 @@ function App() {
   } = useConversion();
 
   return (
-    <div className="w-full min-h-screen tuneswap-bg">
+    <div className="min-h-screen bg-background text-foreground">
       <AppHeader />
 
-      <Content className="w-full flex-1">
-        <div className="max-w-6xl mx-auto md:p-6 space-y-8 p-3">
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-8 space-y-12">
           <HeroSection />
 
           <ConversionFlow
@@ -43,7 +40,7 @@ function App() {
 
           <FeatureCards />
         </div>
-      </Content>
+      </main>
 
       <AppFooter />
     </div>

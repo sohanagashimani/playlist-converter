@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, Button } from "antd";
+import { Button } from "@/components/ui";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { SpotifyIcon, YouTubeMusicIcon } from "../icons";
 import ConversionForm from "./ConversionForm";
@@ -10,8 +10,6 @@ import type {
   ConversionResult,
   ConversionProgress as ConversionProgressType,
 } from "../types";
-
-const { Text } = Typography;
 
 interface ConversionFlowProps {
   isConverting: boolean;
@@ -37,21 +35,21 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
   onCheckExistingConversion,
 }) => {
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-100 md:p-6 hover:shadow-lg transition-shadow p-4">
+    <div className="modern-card bg-card border border-border rounded-xl shadow-lg p-6">
       {/* Service Flow Indicator */}
-      <div className="flex items-center justify-center space-x-4 mb-8">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+      <div className="flex items-center justify-center space-x-6 mb-8">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-md">
             <SpotifyIcon className="w-5 h-5 text-white" />
           </div>
-          <Text strong>Spotify</Text>
+          <span className="font-semibold text-foreground">Spotify</span>
         </div>
-        <ArrowRightIcon className="h-6 w-6 text-gray-400" />
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+        <ArrowRightIcon className="h-6 w-6 text-muted-foreground" />
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center shadow-md">
             <YouTubeMusicIcon className="w-5 h-5 text-white" />
           </div>
-          <Text strong>YouTube Music</Text>
+          <span className="font-semibold text-foreground">YouTube Music</span>
         </div>
       </div>
 
@@ -60,8 +58,8 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
         <>
           <ConversionForm onSubmit={onConversionStart} />
           {/* Check Existing Conversion Button */}
-          <div className="text-center mt-4">
-            <Button type="link" onClick={onCheckExistingConversion}>
+          <div className="text-center mt-6">
+            <Button variant="ghost" onClick={onCheckExistingConversion}>
               Check existing conversion status
             </Button>
           </div>

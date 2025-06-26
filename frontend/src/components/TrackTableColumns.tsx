@@ -1,9 +1,6 @@
-import { Typography, Tag, Space } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { SpotifyIcon, YouTubeMusicIcon } from "../icons";
 import type { ConversionTrack } from "../types";
-
-const { Text, Link } = Typography;
 
 export const getTrackTableColumns = () => [
   {
@@ -11,13 +8,13 @@ export const getTrackTableColumns = () => [
     key: "original",
     width: "25%",
     render: (record: ConversionTrack) => (
-      <div className="min-w-0">
-        <Text strong className="block truncate text-sm">
+      <div className="min-w-0 space-y-1">
+        <p className="font-medium text-sm text-foreground truncate">
           {record.originalTitle}
-        </Text>
-        <Text type="secondary" className="text-xs truncate block">
+        </p>
+        <p className="text-xs text-muted-foreground truncate">
           {record.originalArtist}
-        </Text>
+        </p>
       </div>
     ),
   },
@@ -31,26 +28,20 @@ export const getTrackTableColumns = () => [
           .map(artist => (typeof artist === "string" ? artist : artist.name))
           .join(", ");
         return (
-          <div className="min-w-0">
-            <Text className="block truncate text-sm">
+          <div className="min-w-0 space-y-1">
+            <p className="text-sm text-foreground truncate">
               {record.ytMusicResult.title}
-            </Text>
-            <Text type="secondary" className="text-xs truncate block">
-              {artists}
-            </Text>
+            </p>
+            <p className="text-xs text-muted-foreground truncate">{artists}</p>
             {record.ytMusicResult.duration && (
-              <Text type="secondary" className="text-xs">
+              <p className="text-xs text-muted-foreground">
                 {record.ytMusicResult.duration}
-              </Text>
+              </p>
             )}
           </div>
         );
       }
-      return (
-        <Text type="secondary" className="text-sm">
-          No match found
-        </Text>
-      );
+      return <p className="text-sm text-muted-foreground">No match found</p>;
     },
   },
   {
@@ -58,24 +49,24 @@ export const getTrackTableColumns = () => [
     key: "status",
     width: "15%",
     render: (record: ConversionTrack) => (
-      <div>
+      <div className="space-y-1">
         {record.success ? (
-          <Tag
-            color="success"
-            icon={<CheckCircleOutlined />}
-            className="text-xs"
-          >
-            Converted
-          </Tag>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-xs font-medium text-green-700 dark:text-green-400">
+              Converted
+            </span>
+          </div>
         ) : (
-          <Tag color="error" icon={<CloseCircleOutlined />} className="text-xs">
-            Failed
-          </Tag>
+          <div className="flex items-center gap-2">
+            <XCircle className="h-4 w-4 text-red-500" />
+            <span className="text-xs font-medium text-red-700 dark:text-red-400">
+              Failed
+            </span>
+          </div>
         )}
         {record.error && (
-          <Text type="secondary" className="text-xs block mt-1 text-red-500">
-            {record.error}
-          </Text>
+          <p className="text-xs text-destructive mt-1">{record.error}</p>
         )}
       </div>
     ),
@@ -85,30 +76,32 @@ export const getTrackTableColumns = () => [
     key: "links",
     width: "35%",
     render: (record: ConversionTrack) => (
-      <Space size="small" className="flex gap-4" wrap>
+      <div className="flex items-center gap-4">
         {record.spotifyUrl && (
-          <Link
+          <a
             href={record.spotifyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-1 text-green-600 hover:text-green-700"
+            className="flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors"
           >
             <SpotifyIcon className="w-3 h-3" />
-            <span className="text-xs">Spotify</span>
-          </Link>
+            <span className="text-xs font-medium">Spotify</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
         )}
         {record.ytMusicResult && (
-          <Link
+          <a
             href={`https://music.youtube.com/watch?v=${record.ytMusicResult.videoId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-1 text-red-600 hover:text-red-700"
+            className="flex items-center space-x-2 text-red-600 hover:text-red-700 transition-colors"
           >
             <YouTubeMusicIcon className="w-3 h-3" />
-            <span className="text-xs">YouTube Music</span>
-          </Link>
+            <span className="text-xs font-medium">YouTube Music</span>
+            <ExternalLink className="h-3 w-3" />
+          </a>
         )}
-      </Space>
+      </div>
     ),
   },
 ];

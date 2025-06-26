@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import { message } from "antd";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../services/firebase";
 import apiService from "../services/api";
+import { useToast } from "@/components/ui";
 import type {
   ConversionResult,
   ConversionProgress as ConversionProgressType,
 } from "../types";
 
 export const useConversion = () => {
+  const { showToast } = useToast();
   const [isConverting, setIsConverting] = useState(false);
   const [conversionResult, setConversionResult] =
     useState<ConversionResult | null>(null);
@@ -66,14 +67,15 @@ export const useConversion = () => {
                 setProgress({ stage: "cancelled", progress: 0 });
                 setShowStatusChecker(false);
                 localStorage.removeItem("conversionId");
-                message.warning(
-                  "Conversion was cancelled but may have partially completed"
+                showToast(
+                  "Conversion was cancelled but may have partially completed",
+                  "warning"
                 );
               } else {
                 setConversionResult(data.result);
                 setShowStatusChecker(false);
                 localStorage.removeItem("conversionId");
-                message.success("Conversion completed successfully!");
+                showToast("Conversion completed successfully!", "success");
               }
             }
 
@@ -82,7 +84,7 @@ export const useConversion = () => {
               setProgress({ stage: "cancelled", progress: 0 });
               setShowStatusChecker(false);
               localStorage.removeItem("conversionId");
-              message.info("Conversion was cancelled");
+              showToast("Conversion was cancelled", "info");
             }
 
             // Handle failed conversion
@@ -90,16 +92,16 @@ export const useConversion = () => {
               setProgress({ stage: "failed", progress: 0 });
               setShowStatusChecker(false);
               localStorage.removeItem("conversionId");
-              message.error("Something went wrong. Please try again.");
+              showToast("Something went wrong. Please try again.", "error");
             }
           } else {
             setShowStatusChecker(false);
             localStorage.removeItem("conversionId");
-            message.error("Conversion not found or expired");
+            showToast("Conversion not found or expired", "error");
           }
         },
         () => {
-          message.error("Something went wrong. Please try again.");
+          showToast("Something went wrong. Please try again.", "error");
         }
       );
 
@@ -133,7 +135,7 @@ export const useConversion = () => {
         try {
           await apiService.cancelConversion(existingConversionId);
         } catch (error: unknown) {
-          message.error("Something went wrong. Please try again.");
+          showToast("Something went wrong. Please try again.", "error");
           throw error;
           // Continue anyway - maybe it was already completed/failed
         }
@@ -149,11 +151,12 @@ export const useConversion = () => {
       setConversionId(result.conversionId);
       setShowStatusChecker(true);
 
-      message.success(
-        "Conversion started! You'll see real-time progress updates below."
+      showToast(
+        "Conversion started! You'll see real-time progress updates below.",
+        "success"
       );
     } catch (error: unknown) {
-      message.error("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
       throw error;
     } finally {
       setIsConverting(false);
@@ -165,7 +168,7 @@ export const useConversion = () => {
       try {
         await apiService.cancelConversion(conversionId);
       } catch (error: unknown) {
-        message.error("Something went wrong. Please try again.");
+        showToast("Something went wrong. Please try again.", "error");
         throw error;
       }
     }
@@ -201,19 +204,16 @@ export const useConversion = () => {
       setConversionId(storedConversionId);
       setShowStatusChecker(true);
     } else {
-      message.info("No pending conversion found");
+      showToast("No existing conversion found", "info");
     }
   };
 
   return {
-    // State
     isConverting,
     conversionResult,
     progress,
     conversionId,
     showStatusChecker,
-
-    // Actions
     handleConversionStart,
     handleReset,
     handleViewResults,

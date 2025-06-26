@@ -1,23 +1,22 @@
 import React from "react";
-import { Typography } from "antd";
-
-const { Title, Text } = Typography;
 
 const HeroSection: React.FC = () => {
   return (
-    <div className="text-center py-8">
-      <Title level={1} className="gradient-text !mb-2">
-        Welcome to TuneSwap
-      </Title>
-      <Title level={2} className="!mb-4 !text-gray-700">
-        Seamlessly Transfer Your Music
-      </Title>
-      <Text className="text-lg text-gray-600 block max-w-2xl mx-auto">
-        Transform your Spotify playlists into YouTube Music collections
-        effortlessly. Simply paste your public Spotify playlist URL and watch
-        the magic happen – TuneSwap handles all the heavy lifting for you.
-      </Text>
-    </div>
+    <section className="text-center py-16 px-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+          Welcome to <span className="gradient-text">TuneSwap</span>
+        </h1>
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-muted-foreground">
+          Seamlessly Transfer Your Music
+        </h2>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          Transform your Spotify playlists into YouTube Music collections
+          effortlessly. Simply paste your public Spotify playlist URL and watch
+          the magic happen – TuneSwap handles all the heavy lifting for you.
+        </p>
+      </div>
+    </section>
   );
 };
 
