@@ -8,7 +8,7 @@ const AppFooter: React.FC = () => {
     <footer className="w-full bg-white border-t border-gray-200 text-center">
       <div className="max-w-6xl mx-auto px-4 py-4">
         <Text className="text-gray-500">
-          Playlist Converter © 2025. Convert your music, enjoy everywhere.
+          TuneSwap © 2025. Swap your tunes, enjoy everywhere.
         </Text>
         <Divider type="vertical" />
         <Text className="text-gray-500">

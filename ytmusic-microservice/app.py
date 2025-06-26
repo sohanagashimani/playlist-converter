@@ -699,28 +699,12 @@ def create_playlist():
             logger.error("❌ YTMusic instance is not initialized")
             return jsonify({'success': False, 'error': 'YTMusic not initialized'}), 500
         
-        logger.info(f"📝 Creating YouTube Music playlist: '{title}'")
+        logger.info(f"📝 Creating PUBLIC YouTube Music playlist: '{title}'")
         
-        # Try different privacy settings if PUBLIC fails
-        privacy_options = ['PRIVATE', 'PUBLIC', 'UNLISTED']
-        playlist_result = None
-        
-        for privacy in privacy_options:
-            try:
-                logger.info(f"🔄 Attempting to create playlist with privacy: {privacy}")
-                playlist_result = ytmusic.create_playlist(title, description, privacy_status=privacy)
-                logger.info(f"✅ Playlist creation successful with privacy: {privacy}")
-                logger.info(f"📊 Playlist result type: {type(playlist_result)}, value: {playlist_result}")
-                break
-            except Exception as privacy_error:
-                logger.warning(f"⚠️ Failed to create playlist with privacy {privacy}: {str(privacy_error)}")
-                if privacy == privacy_options[-1]:  # Last option
-                    raise privacy_error
-                continue
-        
-        if playlist_result is None:
-            logger.error("❌ All privacy options failed")
-            return jsonify({'success': False, 'error': 'Failed to create playlist with any privacy setting'}), 500
+        # Create playlist as PUBLIC only
+        playlist_result = ytmusic.create_playlist(title, description, privacy_status='PUBLIC')
+        logger.info(f"✅ PUBLIC playlist creation successful")
+        logger.info(f"📊 Playlist result type: {type(playlist_result)}, value: {playlist_result}")
         
         # Handle both string ID and dict response
         if isinstance(playlist_result, dict):

@@ -22,7 +22,7 @@ function App() {
   } = useConversion();
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="w-full min-h-screen tuneswap-bg">
       <AppHeader />
 
       <Content className="w-full flex-1">

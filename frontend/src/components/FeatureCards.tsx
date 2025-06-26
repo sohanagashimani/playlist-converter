@@ -8,27 +8,27 @@ const FeatureCards: React.FC = () => {
   const features = [
     {
       icon: MusicalNoteIcon,
-      iconColor: "text-blue-600",
-      bgColor: "bg-blue-100",
-      title: "Smart Matching",
+      iconColor: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      title: "Smart Tune Matching",
       description:
-        "Advanced fuzzy matching to find the best YouTube Music equivalents for your tracks.",
+        "TuneSwap's intelligent algorithm finds the perfect YouTube Music matches for your Spotify tracks.",
     },
     {
       icon: ArrowRightIcon,
-      iconColor: "text-green-600",
-      bgColor: "bg-green-100",
-      title: "Fast Conversion",
+      iconColor: "text-indigo-600",
+      bgColor: "bg-indigo-50",
+      title: "Lightning Fast Swaps",
       description:
-        "Quick and efficient playlist conversion with real-time progress updates.",
+        "Watch your playlists transform in real-time with our high-speed conversion engine.",
     },
     {
       icon: MusicalNoteIcon,
-      iconColor: "text-purple-600",
-      bgColor: "bg-purple-100",
-      title: "Detailed Results",
+      iconColor: "text-orange-600",
+      bgColor: "bg-orange-50",
+      title: "Crystal Clear Results",
       description:
-        "See exactly which tracks were converted and which ones couldn't be found.",
+        "Get detailed insights on every track swap with comprehensive success and failure reports.",
     },
   ];
 

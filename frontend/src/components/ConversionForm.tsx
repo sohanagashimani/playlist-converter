@@ -93,9 +93,9 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ onSubmit }) => {
             loading={isValidating}
             size="large"
             icon={<PlayIcon className="h-5 w-5" />}
-            className="w-full btn-primary h-12 text-lg font-semibold"
+            className="w-full btn-tuneswap h-12 text-lg"
           >
-            {isValidating ? "Validating..." : "Convert Playlist"}
+            {isValidating ? "Validating..." : "Start Swapping"}
           </Button>
         </Form.Item>
       </Form>

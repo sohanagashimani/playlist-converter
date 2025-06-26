@@ -34,11 +34,6 @@ const HealthStatus: React.FC = () => {
 
   useEffect(() => {
     checkHealth();
-
-    // Check health every 30 seconds
-    const interval = setInterval(checkHealth, 30000);
-
-    return () => clearInterval(interval);
   }, []);
 
   const getOverallStatus = () => {

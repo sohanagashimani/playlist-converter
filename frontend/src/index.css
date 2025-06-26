@@ -10,8 +10,65 @@
   }
 }
 
+/* TuneSwap Color Palette */
+:root {
+  /* Primary Brand Colors */
+  --tuneswap-primary: #1db954; /* Spotify Green */
+  --tuneswap-secondary: #ff6b35; /* Warm Orange-Red */
+  --tuneswap-accent: #4f46e5; /* Indigo Blue */
+
+  /* Neutral Colors */
+  --tuneswap-dark: #1a1a1a;
+  --tuneswap-gray: #6b7280;
+  --tuneswap-light-gray: #f3f4f6;
+  --tuneswap-white: #ffffff;
+
+  /* State Colors */
+  --tuneswap-success: #10b981;
+  --tuneswap-warning: #f59e0b;
+  --tuneswap-error: #ef4444;
+
+  /* Gradients */
+  --tuneswap-gradient: linear-gradient(135deg, #1db954 0%, #4f46e5 100%);
+  --tuneswap-bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #eef2ff 100%);
+}
+
 @layer components {
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    background: var(--tuneswap-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .tuneswap-bg {
+    background: var(--tuneswap-bg-gradient);
+  }
+
+  .btn-tuneswap {
+    @apply bg-emerald-600 hover:bg-emerald-700;
+    @apply border-0 text-white font-medium;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow-md hover:shadow-lg;
+  }
+
+  .btn-tuneswap:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-tuneswap-secondary {
+    @apply bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-indigo-300;
+    @apply text-gray-700 hover:text-indigo-600 font-medium;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow hover:shadow-md;
+  }
+
+  .btn-tuneswap-secondary:hover {
+    transform: translateY(-1px);
+  }
+
+  .tuneswap-icon-bg {
+    background: var(--tuneswap-gradient);
   }
 }
