@@ -31,16 +31,6 @@ jobs:
           echo ${{ secrets.OAUTH_CREDENTIALS_BASE64 }} | base64 --decode > auth/oauth_credentials.json
           echo ${{ secrets.OAUTH_TOKEN_BASE64 }} | base64 --decode > auth/oauth.json
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies and verify build
-        working-directory: ./ytmusic-microservice
-        run: |
-          pip install -r requirements.txt
-          python -c "import app; print('✅ App imports successfully')"
-
       - id: "auth"
         uses: "google-github-actions/auth@v2"
         with:
