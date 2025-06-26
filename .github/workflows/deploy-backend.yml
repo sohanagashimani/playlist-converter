@@ -78,7 +78,7 @@ jobs:
             SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
             SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
             GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
-            FRONTEND_URL=https://${{ env.PROJECT_ID }}.web.app
+            FRONTEND_URL=https://tune-swap.web.app
 
       - name: Update service configuration
         run: |-

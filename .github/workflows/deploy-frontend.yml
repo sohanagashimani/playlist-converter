@@ -63,4 +63,4 @@ jobs:
       - name: Deploy to Firebase Hosting
         working-directory: ./frontend
         run: |
-          ./node_modules/.bin/firebase deploy --only hosting --project ${{ env.FIREBASE_PROJECT_ID }}
+          ./node_modules/.bin/firebase deploy --only hosting:tune-swap --project ${{ env.FIREBASE_PROJECT_ID }}
