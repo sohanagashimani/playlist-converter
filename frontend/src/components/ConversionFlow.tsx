@@ -75,6 +75,7 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
       {showStatusChecker && conversionId && (
         <ConversionStatus
           conversionId={conversionId}
+          progress={progress}
           onViewResults={onViewResults}
           onReset={onReset}
         />

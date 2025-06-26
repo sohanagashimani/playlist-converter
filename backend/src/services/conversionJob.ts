@@ -166,7 +166,7 @@ class ConversionJobService {
       // Update status to processing
       await firestoreService.updateConversionStatus(
         conversionId,
-        "fetching_spotify_data",
+        "fetching-spotify",
         10
       );
 
@@ -204,7 +204,7 @@ class ConversionJobService {
       // Update progress
       await firestoreService.updateConversionStatus(
         conversionId,
-        "creating_playlist",
+        "creating-playlist",
         20
       );
 
@@ -238,7 +238,7 @@ class ConversionJobService {
       // Update progress
       await firestoreService.updateConversionStatus(
         conversionId,
-        "searching_tracks",
+        "converting-tracks",
         30
       );
 
@@ -267,7 +267,7 @@ class ConversionJobService {
 
         await firestoreService.updateConversionStatus(
           conversionId,
-          "searching_tracks",
+          "converting-tracks",
           trackProgress,
           {
             currentTrack: `${track.title} by ${track.artist}`,
@@ -322,7 +322,7 @@ class ConversionJobService {
       // Update progress to adding phase (Track searching is now complete at 65%)
       await firestoreService.updateConversionStatus(
         conversionId,
-        "adding_to_playlist",
+        "converting-tracks",
         65,
         {
           message: `Adding ${videoIds.length} found tracks to playlist...`,
@@ -367,7 +367,7 @@ class ConversionJobService {
 
             await firestoreService.updateConversionStatus(
               conversionId,
-              "adding_to_playlist",
+              "converting-tracks",
               addProgress,
               {
                 message: `Adding tracks to playlist... (${current}/${total})`,
@@ -383,7 +383,7 @@ class ConversionJobService {
         // Final update for playlist addition phase
         await firestoreService.updateConversionStatus(
           conversionId,
-          "adding_to_playlist",
+          "converting-tracks",
           95,
           {
             message: `Successfully added ${addResults.success} tracks to playlist`,
@@ -395,7 +395,7 @@ class ConversionJobService {
         // No tracks to add
         await firestoreService.updateConversionStatus(
           conversionId,
-          "adding_to_playlist",
+          "converting-tracks",
           95,
           {
             message: "No tracks found to add to playlist",
@@ -426,6 +426,14 @@ class ConversionJobService {
         conversionId,
         timestamp: new Date().toISOString(),
       };
+
+      // Final cancellation check before marking as completed
+      if (this.isConversionCancelled(conversionId)) {
+        console.log(
+          `⏹️ Conversion ${conversionId} cancelled before final completion`
+        );
+        return;
+      }
 
       // Final update - mark as completed
       await firestoreService.updateConversionStatus(

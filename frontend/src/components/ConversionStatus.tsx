@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, Button, Typography, Progress, Alert, Spin, message } from "antd";
 import {
   EyeIcon,
@@ -7,60 +7,29 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import apiService from "../services/api";
-import type { ConversionResult } from "../types";
+import type { ConversionResult, ConversionProgress } from "../types";
 
 const { Title, Text } = Typography;
 
 interface ConversionStatusProps {
   conversionId: string;
+  progress: ConversionProgress;
   onViewResults: (result: ConversionResult) => void;
   onReset: () => Promise<void>;
 }
 
 const ConversionStatus: React.FC<ConversionStatusProps> = ({
   conversionId,
+  progress,
   onViewResults,
   onReset,
 }) => {
-  const [status, setStatus] = useState<any>(null);
   const [cancelling, setCancelling] = useState(false);
-  const [autoRefresh, setAutoRefresh] = useState(true);
-
-  const fetchStatus = async () => {
-    if (!conversionId) return;
-
-    try {
-      const statusData = await apiService.getConversionStatus(conversionId);
-      setStatus(statusData);
-
-      // Stop auto-refresh if conversion is completed, failed, or cancelled
-      if (
-        statusData.status === "completed" ||
-        statusData.status === "failed" ||
-        statusData.status === "cancelled"
-      ) {
-        setAutoRefresh(false);
-
-        if (statusData.status === "completed" && statusData.result) {
-          message.success(
-            'Conversion completed! Click "View Results" to see your playlist.'
-          );
-        } else if (statusData.status === "failed") {
-          message.error("Something went wrong. Please try again.");
-        }
-      }
-    } catch {
-      message.error("Something went wrong. Please try again.");
-      setAutoRefresh(false);
-    }
-  };
 
   const handleCancel = async () => {
     setCancelling(true);
     try {
       await apiService.cancelConversion(conversionId);
-      setAutoRefresh(false);
-      await fetchStatus(); // Refresh to show cancelled status
     } catch {
       message.error("Something went wrong. Please try again.");
     } finally {
@@ -68,55 +37,32 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
     }
   };
 
-  useEffect(() => {
-    fetchStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversionId]);
-
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(fetchStatus, 3500);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRefresh, conversionId]);
-
   const getStatusMessage = () => {
-    if (!status) return "Loading...";
-
-    switch (status.status) {
-      case "started":
-        return "Conversion started...";
-      case "fetching_spotify_data":
+    switch (progress.stage) {
+      case "idle":
+        return "Loading...";
+      case "fetching-spotify":
         return "Fetching Spotify playlist data...";
-      case "creating_playlist":
+      case "creating-playlist":
         return "Creating YouTube Music playlist...";
-      case "searching_tracks":
-        return status.result?.currentTrack
-          ? `Searching: ${status.result.currentTrack}`
-          : "Searching for tracks on YouTube Music...";
-      case "adding_to_playlist":
-        if (status.result?.message) {
-          return status.result.message;
-        }
-        return status.result?.tracksToAdd
-          ? `Adding ${status.result.tracksToAdd} tracks to YouTube Music playlist...`
-          : "Adding tracks to YouTube Music playlist...";
+      case "converting-tracks":
+        return progress.currentTrack
+          ? `Searching: ${progress.currentTrack}`
+          : progress.message || "Converting tracks...";
       case "completed":
         return "Conversion completed successfully!";
       case "failed":
+      case "error":
         return "Something went wrong. Please try again.";
       case "cancelled":
         return "Conversion was cancelled";
       default:
-        return `Status: ${status.status}`;
+        return `Status: ${progress.stage}`;
     }
   };
 
   const getStatusIcon = () => {
-    if (!status) return <Spin size="small" />;
-
-    switch (status.status) {
+    switch (progress.stage) {
       case "completed":
         return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
       case "failed":
@@ -129,18 +75,20 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
   };
 
   const getProgressPercent = () => {
-    return status?.progress || 0;
+    return progress.progress || 0;
   };
 
   const handleViewResults = () => {
-    if (status?.result && status.status === "completed") {
-      onViewResults(status.result);
+    if (progress.stage === "completed") {
+      // The result should be passed from the parent component
+      // Since useConversion already handles this, we just need to trigger it
+      onViewResults({} as ConversionResult); // Parent will handle the actual result
     }
   };
 
   const isConversionActive = () => {
-    return (
-      status && !["completed", "failed", "cancelled"].includes(status.status)
+    return !["completed", "failed", "cancelled", "idle"].includes(
+      progress.stage
     );
   };
 
@@ -170,9 +118,9 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
             <Progress
               percent={getProgressPercent()}
               status={
-                status?.status === "failed"
+                progress.stage === "failed"
                   ? "exception"
-                  : status?.status === "cancelled"
+                  : progress.stage === "cancelled"
                   ? "exception"
                   : "active"
               }
@@ -180,36 +128,15 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
             />
 
             {/* Show track processing info during search phase */}
-            {status?.result?.processed !== undefined &&
-              status?.result?.total && (
-                <Text className="text-sm text-gray-500">
-                  Processed {status.result.processed} of {status.result.total}{" "}
-                  tracks
-                </Text>
-              )}
-
-            {/* Show track addition info during adding phase */}
-            {status?.status === "adding_to_playlist" &&
-              status?.result?.tracksAdded !== undefined && (
-                <Text className="text-sm text-gray-500">
-                  Added {status.result.tracksAdded} tracks to playlist
-                  {status.result.tracksFailed > 0 &&
-                    ` (${status.result.tracksFailed} failed)`}
-                </Text>
-              )}
-
-            {/* Show tracks to be added info */}
-            {status?.status === "adding_to_playlist" &&
-              status?.result?.tracksToAdd !== undefined &&
-              status?.result?.tracksAdded === undefined && (
-                <Text className="text-sm text-gray-500">
-                  {status.result.tracksToAdd} tracks ready to add
-                </Text>
-              )}
+            {progress.processed !== undefined && progress.total && (
+              <Text className="text-sm text-gray-500">
+                Processed {progress.processed} of {progress.total} tracks
+              </Text>
+            )}
           </div>
 
           <div className="flex space-x-4 justify-center">
-            {status?.status === "completed" && (
+            {progress.stage === "completed" && (
               <Button
                 type="primary"
                 icon={<EyeIcon className="h-4 w-4" />}
@@ -233,7 +160,7 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
             )}
           </div>
 
-          {status?.status === "failed" && (
+          {progress.stage === "failed" && (
             <Alert
               message="Conversion Failed"
               description="Something went wrong. Please try again."

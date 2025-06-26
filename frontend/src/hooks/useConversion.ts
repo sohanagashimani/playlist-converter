@@ -59,10 +59,22 @@ export const useConversion = () => {
 
             // Handle completed conversion
             if (data.status === "completed" && data.result) {
-              setConversionResult(data.result);
-              setShowStatusChecker(false);
-              localStorage.removeItem("conversionId");
-              message.success("Conversion completed successfully!");
+              // Check if this conversion was supposed to be cancelled
+              if (data.result?.cancelledAt) {
+                // This should not happen, but handle gracefully
+                console.warn("Conversion completed despite being cancelled");
+                setProgress({ stage: "cancelled", progress: 0 });
+                setShowStatusChecker(false);
+                localStorage.removeItem("conversionId");
+                message.warning(
+                  "Conversion was cancelled but may have partially completed"
+                );
+              } else {
+                setConversionResult(data.result);
+                setShowStatusChecker(false);
+                localStorage.removeItem("conversionId");
+                message.success("Conversion completed successfully!");
+              }
             }
 
             // Handle cancelled conversion
