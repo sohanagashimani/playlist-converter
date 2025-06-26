@@ -1,34 +1,20 @@
 import axios from "axios";
-import { GoogleAuth } from "google-auth-library";
 import { YTMusicSearchResult, YTMusicPlaylist } from "../types";
 
 class YTMusicService {
   private baseUrl: string;
-  private auth: GoogleAuth;
 
   constructor() {
     this.baseUrl = process.env.YTMUSIC_SERVICE_URL || "http://localhost:8000";
-    this.auth = new GoogleAuth({
-      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-    });
   }
 
   /**
-   * Get authentication headers for service-to-service calls
+   * Get authentication headers for service-to-service calls (currently disabled)
    */
   private async getAuthHeaders(): Promise<{ [key: string]: string }> {
-    try {
-      // In Cloud Run, this will automatically use the service account
-      const client = await this.auth.getIdTokenClient(this.baseUrl);
-      const headers = await client.getRequestHeaders();
-      return headers;
-    } catch (error) {
-      console.warn(
-        "⚠️ Could not get auth headers, using no auth (dev mode?):",
-        error
-      );
-      return {};
-    }
+    // Temporarily disabled authentication for simplicity
+    console.log("🔓 Using unauthenticated requests to ytmusic service");
+    return {};
   }
 
   /**
