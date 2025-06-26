@@ -12,7 +12,7 @@ const AppFooter: React.FC = () => {
         </Text>
         <Divider type="vertical" />
         <Text className="text-gray-500">
-          Built with React, TypeScript, and lots of ♪
+          Built with React, TypeScript, Python and lots of ♪
         </Text>
       </div>
     </footer>
