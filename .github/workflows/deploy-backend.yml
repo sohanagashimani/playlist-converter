@@ -49,14 +49,12 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Create service account for backend (if not exists)
+      - name: Extract service account email from playlist converter credentials
         run: |-
-          # Create service account for backend if it doesn't exist
-          if ! gcloud iam service-accounts describe playlist-converter-backend@${{ env.PROJECT_ID }}.iam.gserviceaccount.com --quiet 2>/dev/null; then
-            gcloud iam service-accounts create playlist-converter-backend \
-              --display-name="Playlist Converter Backend Service Account" \
-              --description="Service account for playlist converter backend to access YTMusic microservice"
-          fi
+          # Extract service account email from the existing playlist converter credentials
+          SERVICE_ACCOUNT_EMAIL=$(echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}' | base64 --decode | jq -r '.client_email')
+          echo "Using existing service account: $SERVICE_ACCOUNT_EMAIL"
+          echo "SERVICE_ACCOUNT_EMAIL=$SERVICE_ACCOUNT_EMAIL" >> $GITHUB_ENV
 
       - name: Authorize Docker push
         run: gcloud auth configure-docker ${{env.REGION}}-docker.pkg.dev
@@ -88,7 +86,6 @@ jobs:
             SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
             GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
             FRONTEND_URL=https://${{ env.PROJECT_ID }}.web.app
-          service_account: playlist-converter-backend@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
 
       - name: Update service configuration
         run: |-
