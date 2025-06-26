@@ -38,13 +38,24 @@ def init_firestore():
     try:
         # Initialize Firebase Admin if not already done
         if not firebase_admin._apps:
-            # Check for GOOGLE_APPLICATION_CREDENTIALS first
+            # Check for GOOGLE_APPLICATION_CREDENTIALS first (base64 encoded in Cloud Run)
             google_creds = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
             if google_creds:
-                # Parse the base64 encoded service account
-                service_account = json.loads(
-                    base64.b64decode(google_creds).decode()
-                )
+                try:
+                    # Try to parse as base64 encoded JSON first
+                    service_account = json.loads(
+                        base64.b64decode(google_creds).decode()
+                    )
+                    logger.info("✅ Using base64 decoded credentials")
+                except:
+                    try:
+                        # If not base64, try to parse as direct JSON
+                        service_account = json.loads(google_creds)
+                        logger.info("✅ Using direct JSON credentials")
+                    except:
+                        logger.error("❌ Failed to parse GOOGLE_APPLICATION_CREDENTIALS")
+                        return False
+                
                 cred = credentials.Certificate(service_account)
                 project_id = service_account['project_id']
             else:

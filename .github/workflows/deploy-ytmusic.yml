@@ -33,7 +33,7 @@ jobs:
       - id: "auth"
         uses: "google-github-actions/auth@v2"
         with:
-          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY }}
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
 
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -68,11 +68,15 @@ jobs:
           --timeout=5m0s --max-instances=5 \
           --update-labels env=production,type=microservice,timestamp=$EPOCH,sha=${{github.sha}}
 
-      - name: Setup service account access
+      - name: Extract service account email and setup access
         run: |-
-          # Allow backend service to invoke this microservice
+          # Extract service account email from the credentials
+          SERVICE_ACCOUNT_EMAIL=$(echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}' | base64 --decode | jq -r '.client_email')
+          echo "Using service account: $SERVICE_ACCOUNT_EMAIL"
+
+          # Allow the same service account to invoke this microservice
           gcloud run services add-iam-policy-binding ${{ env.SERVICE_NAME }} \
-            --member="serviceAccount:playlist-converter-backend@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
+            --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
             --role="roles/run.invoker" \
             --region ${{ env.REGION }}
 
