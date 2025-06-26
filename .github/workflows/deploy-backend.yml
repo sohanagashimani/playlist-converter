@@ -86,7 +86,7 @@ jobs:
             YTMUSIC_SERVICE_URL=${{ env.YTMUSIC_SERVICE_URL }}
             SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
             SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
-            GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY }}
+            GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
             FRONTEND_URL=https://${{ env.PROJECT_ID }}.web.app
           service_account: playlist-converter-backend@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
 

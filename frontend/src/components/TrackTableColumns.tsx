@@ -1,4 +1,3 @@
-import React from "react";
 import { Typography, Tag, Space } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { SpotifyIcon, YouTubeMusicIcon } from "../icons";

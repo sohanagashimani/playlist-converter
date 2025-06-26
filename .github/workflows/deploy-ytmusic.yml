@@ -59,6 +59,7 @@ jobs:
           env_vars: |
             FLASK_ENV=production
             PORT=8080
+            GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
 
       - name: Update service configuration
         run: |-
