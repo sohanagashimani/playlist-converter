@@ -10,25 +10,17 @@
   }
 }
 
-/* TuneSwap Color Palette */
 :root {
-  /* Primary Brand Colors */
-  --tuneswap-primary: #1db954; /* Spotify Green */
-  --tuneswap-secondary: #ff6b35; /* Warm Orange-Red */
-  --tuneswap-accent: #4f46e5; /* Indigo Blue */
-
-  /* Neutral Colors */
+  --tuneswap-primary: #1db954;
+  --tuneswap-secondary: #ff6b35;
+  --tuneswap-accent: #4f46e5;
   --tuneswap-dark: #1a1a1a;
   --tuneswap-gray: #6b7280;
   --tuneswap-light-gray: #f3f4f6;
   --tuneswap-white: #ffffff;
-
-  /* State Colors */
   --tuneswap-success: #10b981;
   --tuneswap-warning: #f59e0b;
   --tuneswap-error: #ef4444;
-
-  /* Gradients */
   --tuneswap-gradient: linear-gradient(135deg, #1db954 0%, #4f46e5 100%);
   --tuneswap-bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #eef2ff 100%);
 }

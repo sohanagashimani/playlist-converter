@@ -8,7 +8,6 @@ on:
 env:
   PROJECT_ID: resounding-age-438010-g3
   SERVICE_NAME: playlist-converter-backend
-  YTMUSIC_SERVICE_NAME: playlist-converter-ytmusic
   REGION: asia-south1
 
 jobs:
@@ -50,13 +49,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.PROJECT_ID }}
-
-      - name: Extract service account email from playlist converter credentials
-        run: |-
-          # Extract service account email from the existing playlist converter credentials
-          SERVICE_ACCOUNT_EMAIL=$(echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}' | base64 --decode | jq -r '.client_email')
-          echo "Using existing service account: $SERVICE_ACCOUNT_EMAIL"
-          echo "SERVICE_ACCOUNT_EMAIL=$SERVICE_ACCOUNT_EMAIL" >> $GITHUB_ENV
 
       - name: Authorize Docker push
         run: gcloud auth configure-docker ${{env.REGION}}-docker.pkg.dev

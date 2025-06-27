@@ -15,27 +15,22 @@ export const errorHandler = (
   const error = { ...err };
   error.message = err.message;
 
-  // Log error
   console.error(`❌ Error: ${error.message}`);
   console.error(err.stack);
 
-  // Default error
   let statusCode = error.statusCode || 500;
   let message = error.message || "Internal Server Error";
 
-  // Spotify API errors
   if (error.message.includes("Spotify")) {
     statusCode = 400;
     message = `Spotify API error: ${error.message}`;
   }
 
-  // YouTube Music API errors
   if (error.message.includes("YTMusic")) {
     statusCode = 400;
     message = `YouTube Music API error: ${error.message}`;
   }
 
-  // Invalid playlist URL
   if (error.message.includes("Invalid playlist URL")) {
     statusCode = 400;
     message = "Invalid Spotify playlist URL provided";

@@ -19,10 +19,7 @@ export const useConversion = () => {
   const [conversionId, setConversionId] = useState<string | null>(null);
   const [showStatusChecker, setShowStatusChecker] = useState(false);
 
-  // Firestore listener - using function type instead of Unsubscribe
   const [unsubscribe, setUnsubscribe] = useState<(() => void) | null>(null);
-
-  // Check for stored conversion ID on app load
   useEffect(() => {
     const storedConversionId = localStorage.getItem("conversionId");
     if (storedConversionId) {
@@ -31,22 +28,17 @@ export const useConversion = () => {
     }
   }, []);
 
-  // Set up real-time listener when conversionId changes
   useEffect(() => {
     if (conversionId) {
-      // Clean up existing listener
       if (unsubscribe) {
         unsubscribe();
       }
-
-      // Create new listener
       const docRef = doc(db, "conversion-jobs", conversionId);
       const newUnsubscribe = onSnapshot(
         docRef,
         docSnapshot => {
           if (docSnapshot.exists()) {
             const data = docSnapshot.data();
-            // Update progress
             setProgress({
               stage: data.status || "idle",
               progress: data.progress || 0,
@@ -60,11 +52,8 @@ export const useConversion = () => {
               tracksFailed: data.result?.tracksFailed,
             });
 
-            // Handle completed conversion
             if (data.status === "completed" && data.result) {
-              // Check if this conversion was supposed to be cancelled
               if (data.result?.cancelledAt) {
-                // This should not happen, but handle gracefully
                 console.warn("Conversion completed despite being cancelled");
                 setProgress({ stage: "cancelled", progress: 0 });
                 setShowStatusChecker(false);
@@ -80,7 +69,6 @@ export const useConversion = () => {
               }
             }
 
-            // Handle cancelled conversion
             if (data.status === "cancelled") {
               setProgress({ stage: "cancelled", progress: 0 });
               setShowStatusChecker(false);
@@ -88,7 +76,6 @@ export const useConversion = () => {
               message.info("Conversion terminated");
             }
 
-            // Handle failed conversion
             if (data.status === "failed") {
               setProgress({ stage: "failed", progress: 0 });
               setShowStatusChecker(false);
@@ -108,20 +95,17 @@ export const useConversion = () => {
 
       setUnsubscribe(() => newUnsubscribe);
     } else {
-      // Clean up listener if no conversionId
       if (unsubscribe) {
         unsubscribe();
         setUnsubscribe(null);
       }
     }
 
-    // Cleanup on unmount or conversionId change
     return () => {
       if (unsubscribe) {
         unsubscribe();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversionId]);
 
   const handleConversionStart = async (spotifyUrl: string) => {
@@ -130,7 +114,6 @@ export const useConversion = () => {
     setProgress({ stage: "idle", progress: 0 });
 
     try {
-      // Cancel any existing conversion first
       const existingConversionId = localStorage.getItem("conversionId");
       if (existingConversionId) {
         try {
@@ -138,16 +121,13 @@ export const useConversion = () => {
         } catch (error: unknown) {
           message.error("Something went wrong. Please try again.");
           throw error;
-          // Continue anyway - maybe it was already completed/failed
         }
       }
 
-      // Start new async conversion
       const result = await apiService.startConversion({
         spotifyPlaylistUrl: spotifyUrl,
       });
 
-      // Store conversion ID and set up real-time listener
       localStorage.setItem("conversionId", result.conversionId);
       setConversionId(result.conversionId);
       setShowStatusChecker(true);
@@ -173,7 +153,6 @@ export const useConversion = () => {
       }
     }
 
-    // Clean up listener
     if (unsubscribe) {
       unsubscribe();
       setUnsubscribe(null);
@@ -191,7 +170,6 @@ export const useConversion = () => {
     setShowStatusChecker(false);
     localStorage.removeItem("conversionId");
 
-    // Clean up listener
     if (unsubscribe) {
       unsubscribe();
       setUnsubscribe(null);
@@ -209,14 +187,12 @@ export const useConversion = () => {
   };
 
   return {
-    // State
     isConverting,
     conversionResult,
     progress,
     conversionId,
     showStatusChecker,
 
-    // Actions
     handleConversionStart,
     handleReset,
     handleViewResults,

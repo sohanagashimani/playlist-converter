@@ -36,7 +36,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
   result,
   onReset,
 }) => {
-  // Smart default: cards for small playlists (≤20 tracks), table for large ones
   const defaultView = result.totalTracks <= 20 ? "cards" : "table";
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,7 +43,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"cards" | "table">(defaultView);
 
-  // Filter tracks based on search term
   const filteredTracks = result.tracks.filter(
     track =>
       track.originalTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,7 +52,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
         .includes(searchTerm.toLowerCase())
   );
 
-  // Paginate filtered tracks
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedTracks = filteredTracks.slice(startIndex, endIndex);
@@ -63,15 +60,13 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
     (result.successfulTracks / result.totalTracks) * 100
   );
 
-  // Handle view mode change
   const handleViewModeChange = (mode: "cards" | "table") => {
     setViewMode(mode);
-    // Adjust page size for different views
+
     setPageSize(mode === "cards" ? 12 : 20);
     setCurrentPage(1);
   };
 
-  // Get table columns
   const tableColumns = getTrackTableColumns();
 
   return (

@@ -6,7 +6,6 @@ class FirestoreService {
    */
   async createConversionJob(data: any): Promise<string | null> {
     try {
-      // Create document with auto-generated ID
       const docRef = await firestore.collection("conversion-jobs").add({
         ...data,
         createdAt: new Date(),
@@ -22,7 +21,6 @@ class FirestoreService {
 
   async storeConversionData(conversionId: string, data: any): Promise<boolean> {
     try {
-      // Store in conversion-jobs collection
       await firestore
         .collection("conversion-jobs")
         .doc(conversionId)
@@ -119,7 +117,6 @@ class FirestoreService {
 
   async isHealthy(): Promise<boolean> {
     try {
-      // Simple health check - try to access Firestore
       await firestore.collection("health").limit(1).get();
       return true;
     } catch {
@@ -127,17 +124,15 @@ class FirestoreService {
     }
   }
 
-  // Active Jobs Tracking
   async addActiveJob(conversionId: string): Promise<boolean> {
     try {
-      // Store in active-jobs collection with auto-cleanup via TTL
       await firestore
         .collection("active-jobs")
         .doc(conversionId)
         .set({
           conversionId,
           startedAt: new Date(),
-          // Auto cleanup after 2 hours (7200 seconds)
+
           expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
         });
 
@@ -160,7 +155,6 @@ class FirestoreService {
 
   async getActiveJobsCount(): Promise<number> {
     try {
-      // Clean up expired jobs first
       await this.cleanupExpiredJobs();
 
       const snapshot = await firestore.collection("active-jobs").get();
@@ -174,7 +168,6 @@ class FirestoreService {
 
   async getActiveJobs(): Promise<string[]> {
     try {
-      // Clean up expired jobs first
       await this.cleanupExpiredJobs();
 
       const snapshot = await firestore.collection("active-jobs").get();
