@@ -327,6 +327,7 @@ class ConversionJobService {
         {
           message: `Adding ${videoIds.length} found tracks to playlist...`,
           tracksToAdd: videoIds.length,
+          currentTrack: null,
         }
       );
 
@@ -375,6 +376,7 @@ class ConversionJobService {
                 tracksToAdd: total,
                 tracksAdded: success,
                 tracksFailed: failed,
+                currentTrack: null,
               }
             );
           }
@@ -389,6 +391,7 @@ class ConversionJobService {
             message: `Successfully added ${addResults.success} tracks to playlist`,
             tracksAdded: addResults.success,
             tracksFailed: addResults.failed,
+            currentTrack: null,
           }
         );
       } else {
@@ -400,6 +403,7 @@ class ConversionJobService {
           {
             message: "No tracks found to add to playlist",
             tracksToAdd: 0,
+            currentTrack: null,
           }
         );
       }

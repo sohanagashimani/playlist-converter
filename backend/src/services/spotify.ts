@@ -2,7 +2,6 @@ import axios from "axios";
 import dotenv from "dotenv";
 import { SpotifyAccessToken, SpotifyPlaylist } from "../types";
 
-// Ensure environment variables are loaded
 dotenv.config();
 
 class SpotifyService {
@@ -22,11 +21,7 @@ class SpotifyService {
     }
   }
 
-  /**
-   * Get access token using Client Credentials flow
-   */
   private async getAccessToken(): Promise<string> {
-    // Return cached token if still valid
     if (this.accessToken && Date.now() < this.tokenExpiresAt) {
       return this.accessToken;
     }
@@ -66,9 +61,6 @@ class SpotifyService {
     }
   }
 
-  /**
-   * Extract playlist ID from Spotify URL
-   */
   private extractPlaylistId(url: string): string {
     const regex = /(?:playlist\/|playlist\/)([a-zA-Z0-9]+)/;
     const match = url.match(regex);
@@ -82,9 +74,6 @@ class SpotifyService {
     return match[1];
   }
 
-  /**
-   * Get playlist details and tracks
-   */
   async getPlaylist(playlistUrl: string): Promise<SpotifyPlaylist> {
     try {
       const playlistId = this.extractPlaylistId(playlistUrl);
@@ -108,7 +97,6 @@ class SpotifyService {
 
       const playlist = response.data;
 
-      // Fetch all tracks if there are more than 50
       if (playlist.tracks.total > 50) {
         await this.getAllPlaylistTracks(playlist, token);
       }
@@ -139,9 +127,6 @@ class SpotifyService {
     }
   }
 
-  /**
-   * Fetch all tracks from a playlist (handles pagination)
-   */
   private async getAllPlaylistTracks(
     playlist: SpotifyPlaylist,
     token: string
@@ -177,9 +162,6 @@ class SpotifyService {
     playlist.tracks.items = allTracks;
   }
 
-  /**
-   * Get simplified track list for easier processing
-   */
   getSimplifiedTracks(
     playlist: SpotifyPlaylist
   ): Array<{ title: string; artist: string; spotifyUrl: string }> {

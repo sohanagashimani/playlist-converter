@@ -46,7 +46,6 @@ export const useConversion = () => {
         docSnapshot => {
           if (docSnapshot.exists()) {
             const data = docSnapshot.data();
-
             // Update progress
             setProgress({
               stage: data.status || "idle",
@@ -55,6 +54,10 @@ export const useConversion = () => {
               currentTrack: data.result?.currentTrack,
               processed: data.result?.processed,
               total: data.result?.total,
+              tracksProcessed: data.result?.tracksProcessed,
+              tracksToAdd: data.result?.tracksToAdd,
+              tracksAdded: data.result?.tracksAdded,
+              tracksFailed: data.result?.tracksFailed,
             });
 
             // Handle completed conversion
