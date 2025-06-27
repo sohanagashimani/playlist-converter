@@ -1,27 +1,24 @@
 import { useState } from "react";
 import { Card, Button, Typography, Progress, Alert, Spin, message } from "antd";
 import {
-  EyeIcon,
   CheckCircleIcon,
   XCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import apiService from "../services/api";
-import type { ConversionResult, ConversionProgress } from "../types";
+import type { ConversionProgress } from "../types";
 
 const { Title, Text } = Typography;
 
 interface ConversionStatusProps {
   conversionId: string;
   progress: ConversionProgress;
-  onViewResults: (result: ConversionResult) => void;
   onReset: () => Promise<void>;
 }
 
 const ConversionStatus: React.FC<ConversionStatusProps> = ({
   conversionId,
   progress,
-  onViewResults,
   onReset,
 }) => {
   const [cancelling, setCancelling] = useState(false);
@@ -78,12 +75,6 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
     return progress.progress || 0;
   };
 
-  const handleViewResults = () => {
-    if (progress.stage === "completed") {
-      onViewResults({} as ConversionResult); // Parent will handle the actual result
-    }
-  };
-
   const isConversionActive = () => {
     return !["completed", "failed", "cancelled", "idle"].includes(
       progress.stage
@@ -92,7 +83,7 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Simple, nicer alert */}
+      {}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start space-x-3">
           <div>
@@ -131,7 +122,7 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
               showInfo={true}
             />
 
-            {/* Show track processing info - phase-aware */}
+            {}
             {progress.stage === "converting-tracks" &&
             progress.message &&
             progress.message.includes("Adding") &&
@@ -152,16 +143,6 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
           </div>
 
           <div className="flex space-x-4 justify-center">
-            {progress.stage === "completed" && (
-              <Button
-                type="primary"
-                icon={<EyeIcon className="h-4 w-4" />}
-                onClick={handleViewResults}
-              >
-                View Results
-              </Button>
-            )}
-
             <Button onClick={onReset}>Start New Conversion</Button>
 
             {isConversionActive() && (

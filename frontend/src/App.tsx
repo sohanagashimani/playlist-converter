@@ -17,7 +17,6 @@ function App() {
     showStatusChecker,
     handleConversionStart,
     handleReset,
-    handleViewResults,
     handleCheckExistingConversion,
   } = useConversion();
 
@@ -36,7 +35,6 @@ function App() {
             conversionId={conversionId}
             progress={progress}
             onConversionStart={handleConversionStart}
-            onViewResults={handleViewResults}
             onReset={handleReset}
             onCheckExistingConversion={handleCheckExistingConversion}
           />

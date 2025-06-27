@@ -71,7 +71,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Success Alert */}
       <Alert
         message="Conversion Completed!"
         description={
@@ -100,7 +99,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
         className="slide-in"
       />
 
-      {/* Statistics */}
       <Card className="card">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <Statistic
@@ -137,7 +135,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
         </div>
       </Card>
 
-      {/* Playlist Information */}
       {result.ytMusicPlaylist && (
         <Card className="card">
           <Title level={4}>YouTube Music Playlist</Title>
@@ -169,10 +166,8 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
         </Card>
       )}
 
-      {/* Track Details */}
       <Card className="card">
         <div className="flex flex-col space-y-4 mb-6">
-          {/* Header with title and controls */}
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
             <Title level={4} className="!mb-0">
               Track Conversion Details ({result.totalTracks} tracks)
@@ -186,7 +181,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
             </Button>
           </div>
 
-          {/* Controls row */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
             <Search
               placeholder="Search tracks..."
@@ -200,7 +194,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
               allowClear
             />
 
-            {/* View Toggle */}
             <div className="md:flex items-center space-x-2 hidden">
               <Text className="text-sm text-gray-600 whitespace-nowrap">
                 View:
@@ -222,11 +215,9 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
           </div>
         </div>
 
-        {/* Content Area */}
         {paginatedTracks.length > 0 ? (
           <>
             {viewMode === "cards" ? (
-              /* Card Grid View */
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6 max-h-96 overflow-y-auto md:max-h-none">
                 {[...paginatedTracks].map((track, index) => (
                   <TrackCard
@@ -239,7 +230,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
                 ))}
               </div>
             ) : (
-              /* Compact Table View */
               <div className="mb-6">
                 <Table
                   columns={tableColumns}
@@ -261,7 +251,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
               </div>
             )}
 
-            {/* Pagination */}
             <div className="flex justify-center">
               <Pagination
                 current={currentPage}
@@ -303,7 +292,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
         )}
       </Card>
 
-      {/* Conversion Info */}
       <Card className="card">
         <Title level={5}>Conversion Information</Title>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

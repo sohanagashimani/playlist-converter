@@ -20,7 +20,6 @@ interface ConversionFlowProps {
   conversionId: string | null;
   progress: ConversionProgressType;
   onConversionStart: (spotifyUrl: string) => Promise<void>;
-  onViewResults: (result: ConversionResult) => void;
   onReset: () => Promise<void>;
   onCheckExistingConversion: () => void;
 }
@@ -32,13 +31,11 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
   conversionId,
   progress,
   onConversionStart,
-  onViewResults,
   onReset,
   onCheckExistingConversion,
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-100 md:p-6 hover:shadow-lg transition-shadow p-4">
-      {/* Simple Service Flow Indicator */}
       <div className="flex items-center justify-center space-x-4 md:space-x-6 mb-8">
         <div className="flex items-center space-x-2 md:space-x-3">
           <div className="p-2 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
@@ -71,11 +68,10 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
         </div>
       </div>
 
-      {/* Conversion Form */}
       {!isConverting && !conversionResult && !showStatusChecker && (
         <>
           <ConversionForm onSubmit={onConversionStart} />
-          {/* Check Existing Conversion Button */}
+
           <div className="text-center mt-4">
             <Button type="link" onClick={onCheckExistingConversion}>
               Check existing conversion status
@@ -84,20 +80,16 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
         </>
       )}
 
-      {/* Progress (only for immediate feedback) */}
       {isConverting && <ConversionProgress progress={progress} />}
 
-      {/* Status Checker */}
       {showStatusChecker && conversionId && (
         <ConversionStatus
           conversionId={conversionId}
           progress={progress}
-          onViewResults={onViewResults}
           onReset={onReset}
         />
       )}
 
-      {/* Results */}
       {conversionResult && (
         <ConversionResults result={conversionResult} onReset={onReset} />
       )}

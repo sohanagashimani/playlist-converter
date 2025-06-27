@@ -21,16 +21,6 @@ export const errorHandler = (
   let statusCode = error.statusCode || 500;
   let message = error.message || "Internal Server Error";
 
-  if (error.message.includes("Spotify")) {
-    statusCode = 400;
-    message = `Spotify API error: ${error.message}`;
-  }
-
-  if (error.message.includes("YTMusic")) {
-    statusCode = 400;
-    message = `YouTube Music API error: ${error.message}`;
-  }
-
   if (error.message.includes("Invalid playlist URL")) {
     statusCode = 400;
     message = "Invalid Spotify playlist URL provided";

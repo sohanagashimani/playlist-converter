@@ -52,18 +52,6 @@ class ApiService {
     return response.data;
   }
 
-  async getConversionStatus(conversionId: string): Promise<any> {
-    const response = await this.request<any>(
-      `/playlist/conversion-status/${conversionId}`
-    );
-
-    if (!response.success) {
-      throw new Error("Something went wrong. Please try again.");
-    }
-
-    return response.data;
-  }
-
   async cancelConversion(
     conversionId: string
   ): Promise<{ conversionId: string }> {
