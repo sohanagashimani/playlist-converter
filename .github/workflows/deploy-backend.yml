@@ -1,0 +1,91 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+
+env:
+  PROJECT_ID: resounding-age-438010-g3
+  SERVICE_NAME: playlist-converter-backend
+  REGION: asia-south1
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend to Cloud Run
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+          cache-dependency-path: "backend/package-lock.json"
+
+      - name: Set epoch timestamp
+        run: echo "EPOCH=$(date +'%s')" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./backend
+        run: npm run build
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker ${{env.REGION}}-docker.pkg.dev
+
+      - name: Build and Push Container
+        working-directory: ./backend
+        run: |-
+          docker build -t ${{env.REGION}}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-images/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          docker push ${{env.REGION}}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-images/${{ env.SERVICE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          image: ${{env.REGION}}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-images/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          region: ${{ env.REGION }}
+          env_vars: |
+            NODE_ENV=production
+            YTMUSIC_SERVICE_URL=https://playlist-converter-ytmusic-200375359052.asia-south1.run.app
+            SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
+            SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
+            GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
+            FRONTEND_URL=https://tune-swap.web.app
+
+      - name: Update service configuration
+        run: |-
+          gcloud run services update ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --timeout=5m0s --max-instances=1 \
+          --update-labels env=production,type=backend,timestamp=$EPOCH,sha=${{github.sha}}
+
+      - name: Allow unauthenticated access
+        run: gcloud run services add-iam-policy-binding ${{ env.SERVICE_NAME }} --member="allUsers" --role="roles/run.invoker" --region ${{env.REGION}}
+
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}

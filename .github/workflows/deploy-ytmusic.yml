@@ -1,0 +1,84 @@
+name: Deploy YTMusic Microservice to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "ytmusic-microservice/**"
+      - ".github/workflows/deploy-ytmusic.yml"
+
+env:
+  PROJECT_ID: resounding-age-438010-g3
+  SERVICE_NAME: playlist-converter-ytmusic
+  REGION: asia-south1
+
+jobs:
+  deploy-ytmusic:
+    name: Deploy YTMusic Microservice to Cloud Run
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set epoch timestamp
+        run: echo "EPOCH=$(date +'%s')" >> $GITHUB_ENV
+
+      - name: Setup OAuth credentials
+        working-directory: ./ytmusic-microservice
+        run: |
+          mkdir -p auth
+          echo ${{ secrets.OAUTH_CREDENTIALS_BASE64 }} | base64 --decode > auth/oauth_credentials.json
+          echo ${{ secrets.OAUTH_TOKEN_BASE64 }} | base64 --decode > auth/oauth.json
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker ${{env.REGION}}-docker.pkg.dev
+
+      - name: Build and Push Container
+        working-directory: ./ytmusic-microservice
+        run: |-
+          docker build -t ${{env.REGION}}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-images/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          docker push ${{env.REGION}}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-images/${{ env.SERVICE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          image: ${{env.REGION}}-docker.pkg.dev/${{ env.PROJECT_ID }}/cloud-run-images/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          region: ${{ env.REGION }}
+          env_vars: |
+            FLASK_ENV=production
+            GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
+
+      - name: Update service configuration
+        run: |-
+          gcloud run services update ${{ env.SERVICE_NAME }} \
+          --region=${{ env.REGION }} \
+          --timeout=5m0s --max-instances=1 \
+          --update-labels env=production,type=microservice,timestamp=$EPOCH,sha=${{github.sha}}
+
+      - name: Allow unauthenticated access
+        run: |-
+          gcloud run services add-iam-policy-binding ${{ env.SERVICE_NAME }} \
+            --member="allUsers" \
+            --role="roles/run.invoker" \
+            --region ${{ env.REGION }}
+
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}
