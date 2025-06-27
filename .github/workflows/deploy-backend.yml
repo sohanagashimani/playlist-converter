@@ -71,7 +71,7 @@ jobs:
           region: ${{ env.REGION }}
           env_vars: |
             NODE_ENV=production
-            YTMUSIC_SERVICE_URL=https://playlist-converter-ytmusic-200375359052.asia-south1.run.app
+            YTMUSIC_SERVICE_URL=${{ vars.YTMUSIC_SERVICE_URL }}
             SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
             SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
             GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_PLAYLIST_CONVERTER }}
