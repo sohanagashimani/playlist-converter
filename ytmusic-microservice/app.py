@@ -242,129 +242,68 @@ def calculate_similarity(str1: str, str2: str) -> float:
     return SequenceMatcher(None, norm1, norm2).ratio()
 
 def find_best_match(query_title: str, query_artist: str, results: List[Dict]) -> Optional[Dict]:
-    """Find the best match from search results using fuzzy matching"""
+    """Find the best matching track from search results using similarity scoring"""
     if not results:
         return None
     
     best_match = None
     best_score = 0.0
     
-    logger.info(f"Searching for: '{query_title}' by '{query_artist}'")
-    
-    for i, result in enumerate(results[:10]):  # Check top 10 results
+    for result in results:
         try:
-            if not isinstance(result, dict):
-                continue
-                
-            title = result.get('title', '')
-            artists = result.get('artists', [])
+            # Extract title and artists
+            result_title = result.get('title', '').strip()
+            result_artists = result.get('artists', [])
             
-            if not title:
+            if not result_title:
                 continue
             
-
-            title_score = calculate_similarity(query_title, title)
+            # Get artist names
+            artist_names = []
+            for artist in result_artists:
+                if isinstance(artist, dict):
+                    name = artist.get('name', '')
+                    if name:
+                        artist_names.append(name)
+                elif isinstance(artist, str):
+                    artist_names.append(artist)
             
-
-            artist_score = 0.0
-            if artists:
-                artist_scores = []
-                query_artists = [a.strip() for a in query_artist.split(',')]
-                
-                for artist in artists:
-                    artist_name = artist.get('name', '') if isinstance(artist, dict) else str(artist)
-                    if artist_name:
-
-                        for qa in query_artists:
-                            score = calculate_similarity(qa, artist_name)
-                            artist_scores.append(score)
-                
-                artist_score = max(artist_scores) if artist_scores else 0.0
+            result_artist = ', '.join(artist_names)
             
-
-            combined_score = (title_score * 0.7) + (artist_score * 0.3)
+            # Calculate similarity scores
+            title_similarity = calculate_similarity(
+                normalize_string(query_title),
+                normalize_string(result_title)
+            )
             
-
-            if normalize_string(title) == normalize_string(query_title):
-                combined_score += 0.15
+            artist_similarity = calculate_similarity(
+                normalize_string(query_artist),
+                normalize_string(result_artist)
+            )
             
-
-            logger.info(f"Result {i+1}: '{title}' - Title: {title_score:.2f}, Artist: {artist_score:.2f}, Combined: {combined_score:.2f}")
+            # Combined score (title is weighted more heavily)
+            combined_score = (title_similarity * 0.7) + (artist_similarity * 0.3)
             
-            if combined_score > best_score and combined_score > 0.4:
+            logger.debug(f"🔍 Match candidate: '{result_title}' by '{result_artist}' - Score: {combined_score:.3f}")
+            
+            if combined_score > best_score:
                 best_score = combined_score
                 best_match = result
-                
+        
         except Exception as e:
-            logger.warning(f"Error processing search result: {e}")
+            logger.error(f"❌ Error processing search result: {str(e)}")
             continue
     
-    if best_match:
-        logger.info(f"✅ Best match found with score {best_score:.2f}: {best_match.get('title', 'Unknown')}")
+    # Only return matches with reasonable similarity (threshold: 0.4)
+    if best_score >= 0.4:
+        logger.info(f"✅ Best match found with score {best_score:.3f}")
+        return best_match
     else:
-        logger.warning(f"❌ No suitable match found (best score was {best_score:.2f})")
-    
-    return best_match
-
-
-def store_conversion_data(data: Dict) -> Optional[str]:
-    """Store conversion data in Firestore and return the auto-generated document ID"""
-    try:
-        if db is None:
-            return None
-        
-
-        data['created_at'] = datetime.now().isoformat()
-        data['updated_at'] = datetime.now().isoformat()
-        
-
-        doc_ref = db.collection('conversion-jobs').add(data)
-        return doc_ref[1].id  # doc_ref is a tuple (update_time, document_reference)
-    except Exception as e:
-        logger.error(f"❌ Failed to store conversion data: {str(e)}")
+        logger.info(f"❌ No match above threshold (best score: {best_score:.3f})")
         return None
 
-def update_conversion_data(conversion_id: str, data: Dict) -> bool:
-    """Update conversion data in Firestore"""
-    try:
-        if db is None:
-            return False
-        
-        data['updated_at'] = datetime.now().isoformat()
-        db.collection('conversion-jobs').document(conversion_id).set(data, merge=True)
-        return True
-    except Exception as e:
-        logger.error(f"❌ Failed to update conversion data: {str(e)}")
-        return False
 
-def get_conversion_data(conversion_id: str) -> Optional[Dict]:
-    """Get conversion data from Firestore"""
-    try:
-        if db is None:
-            return None
-        
-        doc = db.collection('conversion-jobs').document(conversion_id).get()
-        return doc.to_dict() if doc.exists else None
-    except Exception as e:
-        logger.error(f"❌ Failed to get conversion data: {str(e)}")
-        return None
 
-def update_conversion_status(conversion_id: str, status: str, progress: int = 0, result: Optional[Dict] = None) -> bool:
-    """Update conversion status"""
-    try:
-        data = {
-            'status': status,
-            'progress': progress,
-            'updated_at': datetime.now().isoformat()
-        }
-        
-        if result:
-            data['result'] = result
-        
-        return update_conversion_data(conversion_id, data)
-    except Exception as e:
-        logger.error(f"❌ Failed to update conversion status: {str(e)}")
-        return False
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -376,66 +315,6 @@ def health_check():
         'firestore_connected': db is not None,
         'timestamp': datetime.now().isoformat()
     })
-
-@app.route('/start-conversion', methods=['POST'])
-def start_conversion():
-    """Start a new conversion and return conversion ID"""
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
-        
-        spotify_url = data.get('spotifyUrl', '').strip()
-        playlist_title = data.get('playlistTitle', '').strip()
-        
-        if not spotify_url:
-            return jsonify({'success': False, 'error': 'Spotify URL is required'}), 400
-        
-
-        conversion_data = {
-            'spotify_url': spotify_url,
-            'playlist_title': playlist_title,
-            'status': 'started',
-            'progress': 0
-        }
-        
-        conversion_id = store_conversion_data(conversion_data)
-        if conversion_id:
-            logger.info(f"🎵 Started conversion {conversion_id} for {spotify_url}")
-            return jsonify({
-                'success': True,
-                'conversionId': conversion_id,
-                'message': 'Conversion started'
-            })
-        else:
-            return jsonify({'success': False, 'error': 'Failed to create conversion job'}), 500
-            
-    except Exception as e:
-        logger.error(f"❌ Start conversion error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'Failed to start conversion: {str(e)}'
-        }), 500
-
-@app.route('/conversion-status/<conversion_id>', methods=['GET'])
-def get_conversion_status(conversion_id: str):
-    """Get conversion status by ID"""
-    try:
-        data = get_conversion_data(conversion_id)
-        if not data:
-            return jsonify({'success': False, 'error': 'Conversion not found'}), 404
-        
-        return jsonify({
-            'success': True,
-            'conversion': data
-        })
-        
-    except Exception as e:
-        logger.error(f"❌ Get conversion status error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'Failed to get conversion status: {str(e)}'
-        }), 500
 
 @app.route('/search', methods=['POST'])
 def search_track():
@@ -516,152 +395,12 @@ def search_track():
             'error': f'Search failed: {str(e)}'
         }), 500
 
-def search_single_track(track_data: Dict) -> Dict:
-    """Helper function to search for a single track"""
-    try:
-        title = track_data.get('title', '').strip()
-        artist = track_data.get('artist', '').strip()
-        
-        if not title or not artist:
-            return {
-                'success': False,
-                'error': 'Title and artist required',
-                'originalTitle': title,
-                'originalArtist': artist
-            }
-        
-        search_query = f"{title} {artist}"
-        
-
-        if ytmusic is None:
-            return {
-                'success': False,
-                'error': 'YTMusic not initialized',
-                'originalTitle': title,
-                'originalArtist': artist
-            }
-        
-        search_results = ytmusic.search(search_query, filter='songs', limit=10)
-        
-        if not search_results:
-            return {
-                'success': False,
-                'error': 'No results found',
-                'originalTitle': title,
-                'originalArtist': artist
-            }
-        
-
-        best_match = find_best_match(title, artist, search_results)
-        
-        if not best_match:
-            return {
-                'success': False,
-                'error': 'No suitable match found',
-                'originalTitle': title,
-                'originalArtist': artist
-            }
-        
-
-        result = {
-            'videoId': best_match.get('videoId'),
-            'title': best_match.get('title'),
-            'artists': best_match.get('artists', []),
-            'duration': best_match.get('duration')
-        }
-        
-        return {
-            'success': True,
-            'result': result,
-            'originalTitle': title,
-            'originalArtist': artist
-        }
-        
-    except Exception as e:
-        return {
-            'success': False,
-            'error': f'Search failed: {str(e)}',
-            'originalTitle': track_data.get('title', ''),
-            'originalArtist': track_data.get('artist', '')
-        }
-
-@app.route('/search-batch', methods=['POST'])
-def search_batch():
-    """Search for multiple tracks in parallel"""
+@app.route('/create-playlist-with-tracks', methods=['POST'])
+def create_playlist_with_tracks():
+    """Create a new playlist on YouTube Music with tracks"""
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
-        
-        tracks = data.get('tracks', [])
-        if not tracks:
-            return jsonify({'success': False, 'error': 'No tracks provided'}), 400
-        
-        if not ytmusic:
-            return jsonify({'success': False, 'error': 'YTMusic not initialized'}), 500
-        
-        logger.info(f"🔍 Batch searching {len(tracks)} tracks...")
-        
-        results = []
-        
-
-        max_workers = min(10, len(tracks))  # Limit concurrent requests to avoid overwhelming the API
-        
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-
-            future_to_track = {executor.submit(search_single_track, track): track for track in tracks}
-            
-
-            for future in as_completed(future_to_track):
-                track = future_to_track[future]
-                try:
-                    result = future.result()
-                    results.append(result)
-                    
-                    if result['success']:
-                        logger.info(f"✅ Found: {result['originalTitle']} -> {result['result']['title']}")
-                    else:
-                        logger.warning(f"❌ Failed: {result['originalTitle']} - {result['error']}")
-                        
-                except Exception as e:
-                    logger.error(f"❌ Thread error for {track.get('title', 'Unknown')}: {str(e)}")
-                    results.append({
-                        'success': False,
-                        'error': f'Thread error: {str(e)}',
-                        'originalTitle': track.get('title', ''),
-                        'originalArtist': track.get('artist', '')
-                    })
-        
-
-
-        successful_count = sum(1 for r in results if r['success'])
-        failed_count = len(results) - successful_count
-        
-        logger.info(f"📊 Batch search complete: {successful_count} found, {failed_count} failed")
-        
-        return jsonify({
-            'success': True,
-            'results': results,
-            'summary': {
-                'total': len(tracks),
-                'successful': successful_count,
-                'failed': failed_count
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"❌ Batch search error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'Batch search failed: {str(e)}'
-        }), 500
-
-@app.route('/create-playlist', methods=['POST'])
-def create_playlist():
-    """Create a new playlist on YouTube Music"""
-    try:
-        data = request.get_json()
-        logger.info(f"📥 Received create playlist request: {data}")
+        logger.info(f"📥 Received create playlist with tracks request")
         
         if not data:
             logger.error("❌ No JSON data provided in request")
@@ -669,18 +408,18 @@ def create_playlist():
         
         title = data.get('title', '').strip()
         description = data.get('description', '').strip()
+        video_ids = data.get('videoIds', [])
         conversion_id = data.get('conversionId', '').strip()
         
-        logger.info(f"📝 Playlist details - Title: '{title}', Description: '{description}', ConversionID: '{conversion_id}'")
+        logger.info(f"📝 Playlist details - Title: '{title}', Description: '{description}', Tracks: {len(video_ids)}")
         
         if not title:
             logger.error("❌ Playlist title is empty or missing")
             return jsonify({'success': False, 'error': 'Playlist title is required'}), 400
-        
 
+        # Check for cancellation
         if conversion_id and db:
             try:
-
                 conversion_doc = db.collection('conversion-jobs').document(conversion_id).get()
                 if conversion_doc.exists:
                     conversion_data = conversion_doc.to_dict()
@@ -690,23 +429,26 @@ def create_playlist():
                             'success': False, 
                             'error': 'Conversion was cancelled',
                             'cancelled': True
-                        }), 409  # Conflict status
+                        }), 409
             except Exception as e:
                 logger.warning(f"⚠️ Could not check conversion status for {conversion_id}: {str(e)}")
 
-        
         if not ytmusic:
             logger.error("❌ YTMusic instance is not initialized")
             return jsonify({'success': False, 'error': 'YTMusic not initialized'}), 500
         
-        logger.info(f"📝 Creating UNLISTED YouTube Music playlist: '{title}'")
+        logger.info(f"📝 Creating UNLISTED YouTube Music playlist with {len(video_ids)} tracks: '{title}'")
         
-
-        playlist_result = ytmusic.create_playlist(title, description, privacy_status='UNLISTED')
-        logger.info(f"✅ UNLISTED playlist creation successful")
-        logger.info(f"📊 Playlist result type: {type(playlist_result)}, value: {playlist_result}")
-        logger.info(f"📊 Playlist result repr: {repr(playlist_result)}")
+        # Create playlist with all tracks at once
+        playlist_result = ytmusic.create_playlist(
+            title, 
+            description, 
+            privacy_status='UNLISTED',
+            video_ids=video_ids if video_ids else None
+        )
         
+        logger.info(f"✅ UNLISTED playlist with tracks creation successful")
+        logger.info(f"📊 Playlist result: {playlist_result}")
 
         if isinstance(playlist_result, dict):
             logger.error(f"❌ Playlist creation returned dict (error): {playlist_result}")
@@ -716,168 +458,38 @@ def create_playlist():
             }), 500
         
         playlist_id = str(playlist_result).strip()
-        logger.info(f"📋 Extracted playlist ID: '{playlist_id}' (type: {type(playlist_id)}, length: {len(playlist_id)})")
-        logger.info(f"📋 Playlist ID repr: {repr(playlist_id)}")
-        logger.info(f"📋 Playlist ID bytes: {playlist_id.encode('utf-8')}")
-        
-        # Test if we can immediately access the created playlist
-        try:
-            test_access = ytmusic.get_playlist(playlist_id, limit=1)
-            logger.info(f"✅ Newly created playlist is immediately accessible: {test_access.get('title', 'Unknown')}")
-        except Exception as e:
-            logger.warning(f"⚠️ Newly created playlist not immediately accessible: {str(e)}")
+        logger.info(f"📋 Created playlist ID: '{playlist_id}' with {len(video_ids)} tracks")
         
         if not playlist_id:
             logger.error("❌ Playlist ID is empty after creation")
             return jsonify({'success': False, 'error': 'Failed to create playlist - empty ID returned'}), 500
         
         playlist_url = f"https://music.youtube.com/playlist?list={playlist_id}"
-        logger.info(f"🔗 Generated playlist URL: {playlist_url}")
         
         result = {
             'playlistId': playlist_id,
             'title': title,
             'description': description,
-            'url': playlist_url
+            'url': playlist_url,
+            'tracksAdded': len(video_ids)
         }
         
-        logger.info(f"✅ Successfully created playlist: {playlist_id}")
-        logger.info(f"📤 Returning result: {result}")
+        logger.info(f"✅ Successfully created playlist with tracks: {playlist_id}")
         
         return jsonify({
             'success': True,
             'playlist': result,
-            'message': 'Playlist created successfully'
+            'message': f'Playlist created successfully with {len(video_ids)} tracks'
         })
         
     except Exception as e:
         logger.error(f"❌ Playlist creation error: {str(e)}")
-        logger.error(f"❌ Error type: {type(e)}")
         import traceback
         logger.error(f"❌ Full traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': f'Playlist creation failed: {str(e)}'
         }), 500
-
-@app.route('/add-to-playlist', methods=['POST'])
-def add_to_playlist():
-    """Add a track to a YouTube Music playlist"""
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
-        
-
-        playlist_id_raw = data.get('playlistId', '')
-        if isinstance(playlist_id_raw, dict):
-            logger.error(f"❌ Received dict as playlistId: {playlist_id_raw}")
-            return jsonify({'success': False, 'error': 'Invalid playlistId format'}), 400
-        
-        playlist_id = playlist_id_raw.strip() if playlist_id_raw else ''
-        video_id = data.get('videoId', '').strip()
-        
-        if not playlist_id or not video_id:
-            return jsonify({'success': False, 'error': 'playlistId and videoId are required'}), 400
-        
-        if not ytmusic:
-            return jsonify({'success': False, 'error': 'YTMusic not initialized'}), 500
-        
-        logger.info(f"➕ Adding track {video_id} to playlist {playlist_id}")
-        
-
-        result = ytmusic.add_playlist_items(playlist_id, [video_id])
-        
-
-        if isinstance(result, dict) and result.get('status') == 'STATUS_SUCCEEDED':
-            logger.info(f"✅ Successfully added track to playlist")
-            return jsonify({
-                'success': True,
-                'message': 'Track added to playlist successfully'
-            })
-        elif result:  # If result exists but is not a success dict
-            logger.info(f"✅ Track added to playlist (result: {result})")
-            return jsonify({
-                'success': True,
-                'message': 'Track added to playlist successfully'
-            })
-        else:
-            logger.warning(f"⚠️ Failed to add track to playlist: {result}")
-            return jsonify({
-                'success': False,
-                'error': 'Failed to add track to playlist'
-            }), 500
-        
-    except Exception as e:
-        logger.error(f"❌ Add to playlist error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'Failed to add track to playlist: {str(e)}'
-        }), 500
-
-@app.route('/add-batch-to-playlist', methods=['POST'])
-def add_batch_to_playlist():
-    """Add multiple tracks to a YouTube Music playlist in parallel"""
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
-        
-        playlist_id_raw = data.get('playlistId', '')
-        if isinstance(playlist_id_raw, dict):
-            logger.error(f"❌ Received dict as playlistId: {playlist_id_raw}")
-            return jsonify({'success': False, 'error': 'Invalid playlistId format'}), 400
-        
-        playlist_id = playlist_id_raw.strip() if playlist_id_raw else ''
-        video_ids = data.get('videoIds', [])
-        
-        if not playlist_id or not video_ids:
-            return jsonify({'success': False, 'error': 'playlistId and videoIds are required'}), 400
-        
-        if not ytmusic:
-            return jsonify({'success': False, 'error': 'YTMusic not initialized'}), 500
-        
-        logger.info(f"📚 Adding {len(video_ids)} tracks to playlist {playlist_id}")
-        
-
-        try:
-            result = ytmusic.add_playlist_items(playlist_id, video_ids)
-            
-
-            if isinstance(result, dict) and result.get('status') == 'STATUS_SUCCEEDED':
-                logger.info(f"✅ Successfully added {len(video_ids)} tracks to playlist")
-                return jsonify({
-                    'success': True,
-                    'message': f'Added {len(video_ids)} tracks to playlist successfully'
-                })
-            elif result:  # If result exists but is not a success dict
-                logger.info(f"✅ Added {len(video_ids)} tracks to playlist (result: {result})")
-                return jsonify({
-                    'success': True,
-                    'message': f'Added {len(video_ids)} tracks to playlist successfully'
-                })
-            else:
-                logger.warning(f"⚠️ Failed to add tracks to playlist: {result}")
-                return jsonify({
-                    'success': False,
-                    'error': 'Failed to add tracks to playlist'
-                }), 500
-                
-        except Exception as api_error:
-            logger.error(f"❌ API error adding tracks: {str(api_error)}")
-            return jsonify({
-                'success': False,
-                'error': f'API error: {str(api_error)}'
-            }), 500
-        
-    except Exception as e:
-        logger.error(f"❌ Batch add to playlist error: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'Failed to add tracks to playlist: {str(e)}'
-        }), 500
-
-
 
 @app.errorhandler(404)
 def not_found(error):
@@ -894,19 +506,19 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
-  # Initialize Firestore
-    if not init_firestore():
-        logger.warning("⚠️  Firestore not available - conversion tracking disabled")
+    logger.info("🚀 Starting YTMusic Microservice...")
     
-    # Initialize YTMusic on startup
-    if not init_ytmusic():
-        logger.error("❌ Failed to initialize YTMusic. Exiting...")
+    # Initialize services
+    firestore_ready = init_firestore()
+    ytmusic_ready = init_ytmusic()
+    
+    if not ytmusic_ready:
+        logger.error("❌ YTMusic initialization failed!")
         exit(1)
     
-    # Start Flask app
-
-    port = int(os.getenv('PORT', 8000))
-    host = os.getenv('HOST', '0.0.0.0')
+    if not firestore_ready:
+        logger.warning("⚠️ Firestore initialization failed - continuing without Firestore")
     
-    logger.info(f"🚀 Starting YTMusic microservice on {host}:{port}")
-    app.run(host=host, port=port, debug=os.getenv('DEBUG', 'False').lower() == 'true') 
+    port = int(os.getenv('PORT', 8000))
+    logger.info(f"🎵 YTMusic service starting on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False) 

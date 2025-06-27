@@ -42,30 +42,39 @@ class YTMusicService {
     }
   }
 
-  async createPlaylist(
+  async createPlaylistWithTracks(
     title: string,
+    videoIds: string[],
     description?: string,
     conversionId?: string
-  ): Promise<YTMusicPlaylist> {
+  ): Promise<YTMusicPlaylist & { tracksAdded: number }> {
     try {
-      console.log(`📝 Creating YouTube Music playlist: "${title}"`);
+      console.log(
+        `📝 Creating YouTube Music playlist with ${videoIds.length} tracks: "${title}"`
+      );
 
-      const response = await axios.post(`${this.baseUrl}/create-playlist`, {
-        title,
-        description:
-          description ||
-          `Converted from Spotify playlist - ${new Date().toLocaleDateString()}`,
-        conversionId,
-      });
+      const response = await axios.post(
+        `${this.baseUrl}/create-playlist-with-tracks`,
+        {
+          title,
+          description:
+            description ||
+            `Converted from Spotify playlist - ${new Date().toLocaleDateString()}`,
+          videoIds,
+          conversionId,
+        }
+      );
 
       if (response.data.success && response.data.playlist) {
         console.log(
-          `✅ Created playlist with ID: ${response.data.playlist.playlistId}`
+          `✅ Created playlist with ${response.data.playlist.tracksAdded} tracks - ID: ${response.data.playlist.playlistId}`
         );
         return response.data.playlist;
       } else {
         throw new Error(
-          `Failed to create playlist: ${response.data.error || "Unknown error"}`
+          `Failed to create playlist with tracks: ${
+            response.data.error || "Unknown error"
+          }`
         );
       }
     } catch (error: any) {
@@ -74,93 +83,16 @@ class YTMusicService {
         throw new Error("CONVERSION_CANCELLED");
       }
 
-      console.error("❌ Error creating YouTube Music playlist:", error.message);
+      console.error(
+        "❌ Error creating YouTube Music playlist with tracks:",
+        error.message
+      );
       throw new Error(
-        `YTMusic playlist creation failed: ${
+        `YTMusic playlist creation with tracks failed: ${
           error.response?.data?.error || error.message
         }`
       );
     }
-  }
-
-  async addTrackToPlaylist(
-    playlistId: string,
-    videoId: string
-  ): Promise<boolean> {
-    try {
-      const response = await axios.post(
-        `${this.baseUrl}/add-to-playlist`,
-        {
-          playlistId,
-          videoId,
-        },
-        {}
-      );
-
-      if (response.data.success) {
-        console.log(`✅ Added track ${videoId} to playlist ${playlistId}`);
-        return true;
-      } else {
-        console.log(
-          `❌ Failed to add track ${videoId} to playlist: ${response.data.error}`
-        );
-        return false;
-      }
-    } catch (error: any) {
-      console.error(
-        `❌ Error adding track ${videoId} to playlist:`,
-        error.message
-      );
-      return false;
-    }
-  }
-
-  async addTracksToPlaylist(
-    playlistId: string,
-    videoIds: string[],
-    onProgress?: (
-      current: number,
-      total: number,
-      success: number,
-      failed: number
-    ) => Promise<void>
-  ): Promise<{ success: number; failed: number }> {
-    console.log(
-      `📚 Adding ${videoIds.length} tracks to playlist ${playlistId}`
-    );
-
-    let success = 0;
-    let failed = 0;
-
-    for (let i = 0; i < videoIds.length; i++) {
-      const videoId = videoIds[i];
-      const result = await this.addTrackToPlaylist(playlistId, videoId);
-      if (result) {
-        success++;
-      } else {
-        failed++;
-      }
-
-      if (onProgress) {
-        try {
-          await onProgress(i + 1, videoIds.length, success, failed);
-        } catch (error: any) {
-          if (error.message === "CONVERSION_CANCELLED") {
-            console.log(`⏹️ Stopping track addition due to cancellation`);
-            throw error; // Propagate the cancellation
-          }
-          // For other errors, just log and continue
-          console.warn(`⚠️ Progress callback error:`, error.message);
-        }
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-
-    console.log(
-      `📊 Batch add complete: ${success} succeeded, ${failed} failed`
-    );
-    return { success, failed };
   }
 
   getPlaylistUrl(playlistId: string): string {

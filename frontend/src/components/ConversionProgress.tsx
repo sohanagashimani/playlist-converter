@@ -53,6 +53,21 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
       tracksAdded,
     } = progress;
 
+    // Show message for playlist creation phase (when currentTrack is cleared)
+    if (message && message.includes("Creating playlist")) {
+      let enhancedMessage = message;
+
+      if (tracksToAdd) {
+        enhancedMessage = `Creating playlist with ${tracksToAdd} found tracks...`;
+      }
+
+      return {
+        label: "Current activity:",
+        content: enhancedMessage,
+      };
+    }
+
+    // Show message for adding tracks to playlist
     if (message && message.includes("Adding") && message.includes("playlist")) {
       let enhancedMessage = message;
 
@@ -73,10 +88,12 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
       };
     }
 
+    // Show current track during search phase
     if (
       stage === "converting-tracks" &&
       currentTrack &&
-      (!message || !message.includes("Adding"))
+      (!message ||
+        (!message.includes("Adding") && !message.includes("Creating playlist")))
     ) {
       return {
         label: "Currently searching:",
@@ -84,6 +101,7 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
       };
     }
 
+    // Show any other status message
     if (message) {
       return {
         label: "Status:",
