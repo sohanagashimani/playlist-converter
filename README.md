@@ -20,8 +20,8 @@ graph TD
     C -->|"Conversion ID"| B
     C -->|"Background Job"| D["🔄 Conversion Process"]
 
-    D -->|"1. Get Spotify Tracks"| E["🎧 Spotify"]
-    D -->|"2. Search & Create"| F["🎶 YouTube Music"]
+    D -->|"Get Spotify Tracks"| E["🎧 Spotify"]
+    D -->|"Search & Create"| F["🎶 YouTube Music"]
 
     D -->|"Progress Updates"| G["📱 Real-time Updates"]
     G -->|"Live Progress"| B
