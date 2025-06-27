@@ -53,6 +53,8 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
         return "Something went wrong. Please try again.";
       case "cancelled":
         return "Conversion was cancelled";
+      case "interrupted":
+        return "Conversion was interrupted by service restart";
       default:
         return `Status: ${progress.stage}`;
     }
@@ -66,6 +68,8 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
         return <XCircleIcon className="h-5 w-5 text-red-500" />;
       case "cancelled":
         return <XMarkIcon className="h-5 w-5 text-orange-500" />;
+      case "interrupted":
+        return <XCircleIcon className="h-5 w-5 text-yellow-500" />;
       default:
         return <Spin size="small" />;
     }
@@ -76,9 +80,13 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
   };
 
   const isConversionActive = () => {
-    return !["completed", "failed", "cancelled", "idle"].includes(
-      progress.stage
-    );
+    return ![
+      "completed",
+      "failed",
+      "cancelled",
+      "interrupted",
+      "idle",
+    ].includes(progress.stage);
   };
 
   return (
@@ -116,6 +124,8 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
                 progress.stage === "failed"
                   ? "exception"
                   : progress.stage === "cancelled"
+                  ? "exception"
+                  : progress.stage === "interrupted"
                   ? "exception"
                   : "active"
               }
@@ -162,6 +172,15 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
               message="Conversion Failed"
               description="Something went wrong. Please try again."
               type="error"
+              showIcon
+            />
+          )}
+
+          {progress.stage === "interrupted" && (
+            <Alert
+              message="Conversion Interrupted"
+              description="The conversion was interrupted by a service restart. Your playlist may have been partially created. Please start a new conversion."
+              type="warning"
               showIcon
             />
           )}

@@ -51,6 +51,7 @@ export interface ConversionProgress {
     | "completed"
     | "failed"
     | "cancelled"
+    | "interrupted"
     | "error";
   progress: number;
   message?: string;
