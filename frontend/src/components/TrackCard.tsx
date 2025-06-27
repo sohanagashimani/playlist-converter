@@ -130,8 +130,10 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, index }) => {
                   rel="noopener noreferrer"
                   className="flex items-center space-x-1 text-green-600 hover:text-green-700"
                 >
-                  <SpotifyIcon className="w-4 h-4" />
-                  <span className="text-sm font-medium">Spotify</span>
+                  <SpotifyIcon className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs md:text-sm font-medium">
+                    Spotify
+                  </span>
                 </Link>
               </Tooltip>
             )}
@@ -143,8 +145,10 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, index }) => {
                   rel="noopener noreferrer"
                   className="flex items-center space-x-1 text-red-600 hover:text-red-700"
                 >
-                  <YouTubeMusicIcon className="w-4 h-4" />
-                  <span className="text-sm font-medium">YouTube Music</span>
+                  <YouTubeMusicIcon className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs md:text-sm font-medium">
+                    YouTube Music
+                  </span>
                 </Link>
               </Tooltip>
             )}

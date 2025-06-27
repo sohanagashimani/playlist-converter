@@ -41,8 +41,8 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
       {/* Simple Service Flow Indicator */}
       <div className="flex items-center justify-center space-x-6 mb-8">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
-            <SpotifyIcon className="w-6 h-6 text-white" />
+          <div className="p-3 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+            <SpotifyIcon className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
           <div>
             <Text strong className="text-gray-800">
@@ -55,12 +55,12 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
         <div className="flex items-center space-x-2 text-gray-400">
           <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
           <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-          <ArrowRightIcon className="h-5 w-5" />
+          <ArrowRightIcon className="h-4 w-4 md:h-5 md:w-5" />
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
-            <YouTubeMusicIcon className="w-6 h-6 text-white" />
+          <div className="p-3 md:w-14 md:h-14 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
+            <YouTubeMusicIcon className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
           <div>
             <Text strong className="text-gray-800">

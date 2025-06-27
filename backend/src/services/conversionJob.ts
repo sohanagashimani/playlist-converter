@@ -4,8 +4,8 @@ import firestoreService from "./firestore";
 import { ConversionResult, ConversionTrack } from "../types";
 
 class ConversionJobService {
-  private readonly MAX_CONCURRENT_JOBS = 5; // Maximum concurrent conversions
-  private readonly API_CALL_DELAY = 200; // 200ms delay between YouTube Music API calls (prevents overwhelming their API)
+  private readonly MAX_CONCURRENT_JOBS = 3; // Reduced from 5 to 3 for free tier
+  private readonly API_CALL_DELAY = 500; // Increased from 200ms to 500ms to be more conservative
 
   // Track cancelled conversions to stop processing
   private cancelledConversions = new Set<string>();

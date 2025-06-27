@@ -200,13 +200,13 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              style={{ width: 280 }}
+              className="md:w-1/3"
               prefix={<SearchOutlined />}
               allowClear
             />
 
             {/* View Toggle */}
-            <div className="flex items-center space-x-2 hidden md:block">
+            <div className="md:flex items-center space-x-2 hidden">
               <Text className="text-sm text-gray-600 whitespace-nowrap">
                 View:
               </Text>

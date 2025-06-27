@@ -67,7 +67,7 @@ jobs:
         run: |-
           gcloud run services update ${{ env.SERVICE_NAME }} \
           --region=${{ env.REGION }} \
-          --timeout=5m0s --max-instances=5 \
+          --timeout=5m0s --max-instances=1 \
           --update-labels env=production,type=microservice,timestamp=$EPOCH,sha=${{github.sha}}
 
       - name: Allow unauthenticated access

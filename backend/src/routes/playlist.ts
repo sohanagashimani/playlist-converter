@@ -12,10 +12,24 @@ import {
   ApiResponse,
 } from "../types";
 
-// Professional rate limiting for conversion endpoints
+// Global rate limiting for all conversion requests (stays within free tier)
+const globalConversionLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 3, // Max 3 total conversions per minute (~4,320/day = safe for 20K writes)
+  message: {
+    success: false,
+    error: "System is at capacity. Please try again in a minute.",
+  },
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  skipSuccessfulRequests: false,
+  keyGenerator: () => "global", // Single key for all requests
+});
+
+// Per-IP rate limiting for conversion endpoints
 const conversionRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  limit: 10, // Max 10 conversion requests per minute per IP
+  limit: 5, // Reduced from 10 to 5 per IP to be more conservative
   message: {
     success: false,
     error: "Too many conversion requests. Please try again in a minute.",
@@ -33,7 +47,8 @@ const router = express.Router();
  */
 router.post(
   "/start-conversion",
-  conversionRateLimit, // Apply rate limiting middleware
+  globalConversionLimit, // Apply global rate limiting first
+  conversionRateLimit, // Then per-IP rate limiting
   asyncHandler(async (req: Request, res: Response): Promise<any> => {
     const { spotifyPlaylistUrl }: ConversionRequest = req.body;
 
@@ -173,7 +188,8 @@ router.get(
  */
 router.post(
   "/convert",
-  conversionRateLimit, // Apply rate limiting middleware
+  globalConversionLimit, // Apply global rate limiting first
+  conversionRateLimit, // Then per-IP rate limiting
   asyncHandler(async (req: Request, res: Response): Promise<any> => {
     const { spotifyPlaylistUrl }: ConversionRequest = req.body;
 
