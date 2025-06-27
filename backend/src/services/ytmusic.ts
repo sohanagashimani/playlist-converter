@@ -8,13 +8,6 @@ class YTMusicService {
     this.baseUrl = process.env.YTMUSIC_SERVICE_URL || "http://localhost:8000";
   }
 
-  /**
-   * Get authentication headers for service-to-service calls (currently disabled)
-   */
-
-  /**
-   * Search for a track on YouTube Music
-   */
   async searchTrack(
     title: string,
     artist: string
@@ -49,9 +42,6 @@ class YTMusicService {
     }
   }
 
-  /**
-   * Create a new playlist on YouTube Music
-   */
   async createPlaylist(
     title: string,
     description?: string,
@@ -93,9 +83,6 @@ class YTMusicService {
     }
   }
 
-  /**
-   * Add a track to a YouTube Music playlist
-   */
   async addTrackToPlaylist(
     playlistId: string,
     videoId: string
@@ -128,9 +115,6 @@ class YTMusicService {
     }
   }
 
-  /**
-   * Batch add tracks to a playlist
-   */
   async addTracksToPlaylist(
     playlistId: string,
     videoIds: string[],
@@ -170,16 +154,10 @@ class YTMusicService {
     return { success, failed };
   }
 
-  /**
-   * Get the public URL for a YouTube Music playlist
-   */
   getPlaylistUrl(playlistId: string): string {
     return `https://music.youtube.com/playlist?list=${playlistId}`;
   }
 
-  /**
-   * Check if the YouTube Music service is running
-   */
   async healthCheck(): Promise<boolean> {
     try {
       const response = await axios.get(`${this.baseUrl}/health`, {

@@ -40,9 +40,6 @@ const conversionRateLimit = rateLimit({
 
 const router = express.Router();
 
-/**
- * Start async conversion - returns immediately with conversion ID
- */
 router.post(
   "/start-conversion",
   globalConversionLimit, // Apply global rate limiting first
@@ -77,9 +74,6 @@ router.post(
   })
 );
 
-/**
- * Get conversion status by ID
- */
 router.get(
   "/conversion-status/:conversionId",
   asyncHandler(
@@ -117,9 +111,6 @@ router.get(
   )
 );
 
-/**
- * Cancel a conversion by ID
- */
 router.post(
   "/cancel-conversion/:conversionId",
   asyncHandler(async (req: Request, res: Response): Promise<any> => {
@@ -149,9 +140,6 @@ router.post(
   })
 );
 
-/**
- * Get all conversions (for admin/debugging)
- */
 router.get(
   "/conversions",
   asyncHandler(async (req: Request, res: Response) => {
@@ -165,9 +153,6 @@ router.get(
   })
 );
 
-/**
- * Get system status (load, concurrency, etc.)
- */
 router.get(
   "/system-status",
   asyncHandler(async (req: Request, res: Response) => {
@@ -181,9 +166,6 @@ router.get(
   })
 );
 
-/**
- * Health check endpoint
- */
 router.get(
   "/health",
   asyncHandler(async (req: Request, res: Response) => {

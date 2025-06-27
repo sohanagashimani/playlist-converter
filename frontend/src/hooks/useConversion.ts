@@ -54,7 +54,6 @@ export const useConversion = () => {
 
             if (data.status === "completed" && data.result) {
               if (data.result?.cancelledAt) {
-                console.warn("Conversion completed despite being cancelled");
                 setProgress({ stage: "cancelled", progress: 0 });
                 setShowStatusChecker(false);
                 localStorage.removeItem("conversionId");
@@ -106,6 +105,7 @@ export const useConversion = () => {
         unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversionId]);
 
   const handleConversionStart = async (spotifyUrl: string) => {
@@ -165,17 +165,6 @@ export const useConversion = () => {
     localStorage.removeItem("conversionId");
   };
 
-  const handleViewResults = (result: ConversionResult) => {
-    setConversionResult(result);
-    setShowStatusChecker(false);
-    localStorage.removeItem("conversionId");
-
-    if (unsubscribe) {
-      unsubscribe();
-      setUnsubscribe(null);
-    }
-  };
-
   const handleCheckExistingConversion = () => {
     const storedConversionId = localStorage.getItem("conversionId");
     if (storedConversionId) {
@@ -195,7 +184,6 @@ export const useConversion = () => {
 
     handleConversionStart,
     handleReset,
-    handleViewResults,
     handleCheckExistingConversion,
   };
 };

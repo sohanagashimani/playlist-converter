@@ -9,16 +9,10 @@ class ConversionJobService {
 
   private cancelledConversions = new Set<string>();
 
-  /**
-   * Add a small delay between API calls to prevent overwhelming YouTube Music service
-   */
   private async apiCallDelay(): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, this.API_CALL_DELAY));
   }
 
-  /**
-   * Cancel a conversion by marking it as cancelled
-   */
   async cancelConversion(
     conversionId: string
   ): Promise<{ success: boolean; message: string }> {
@@ -52,23 +46,14 @@ class ConversionJobService {
     }
   }
 
-  /**
-   * Check if a conversion is cancelled
-   */
   private isConversionCancelled(conversionId: string): boolean {
     return this.cancelledConversions.has(conversionId);
   }
 
-  /**
-   * Clean up cancelled conversion from memory
-   */
   private cleanupCancelledConversion(conversionId: string): void {
     this.cancelledConversions.delete(conversionId);
   }
 
-  /**
-   * Start a new conversion job and return immediately with conversion ID
-   */
   async startConversion(
     spotifyPlaylistUrl: string
   ): Promise<{ conversionId: string; success: boolean; error?: string }> {
@@ -137,9 +122,6 @@ class ConversionJobService {
     }
   }
 
-  /**
-   * Process the conversion in the background
-   */
   private async processConversionInBackground(
     conversionId: string,
     spotifyPlaylistUrl: string
@@ -453,23 +435,14 @@ class ConversionJobService {
     }
   }
 
-  /**
-   * Get conversion status by ID
-   */
   async getConversionStatus(conversionId: string): Promise<any | null> {
     return await firestoreService.getConversionData(conversionId);
   }
 
-  /**
-   * Get all conversions
-   */
   async getAllConversions(): Promise<any[]> {
     return await firestoreService.getAllConversions();
   }
 
-  /**
-   * Get system status (active jobs, load, etc.)
-   */
   async getSystemStatus(): Promise<any> {
     const activeJobsCount = await firestoreService.getActiveJobsCount();
     const activeJobIds = await firestoreService.getActiveJobs();

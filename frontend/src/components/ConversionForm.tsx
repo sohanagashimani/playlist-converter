@@ -43,7 +43,6 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ onSubmit }) => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Compact Help Section */}
       <div className="mb-4">
         <Collapse ghost size="small">
           <Panel

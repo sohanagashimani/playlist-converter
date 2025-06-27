@@ -35,7 +35,6 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, index }) => {
       size="small"
       bodyStyle={{ padding: "16px" }}
     >
-      {/* Status Badge */}
       <div className="absolute top-3 right-3">
         {track.success ? (
           <Badge
@@ -51,7 +50,6 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, index }) => {
       </div>
 
       <div className="space-y-3">
-        {/* Original Track */}
         <div className="pr-8">
           <div className="flex items-start space-x-2">
             <SoundOutlined className="text-gray-400 mt-1 flex-shrink-0" />
@@ -67,7 +65,6 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, index }) => {
           </div>
         </div>
 
-        {/* YouTube Music Result */}
         <div className="hidden md:block">
           {track.ytMusicResult ? (
             <div className="bg-gray-50 rounded-lg p-3">
@@ -116,7 +113,6 @@ const TrackCard: React.FC<TrackCardProps> = ({ track, index }) => {
           )}
         </div>
 
-        {/* Action Links */}
         <div className="flex justify-between md:items-center items-baseline pt-2 border-t border-gray-100">
           <Space
             size="middle"

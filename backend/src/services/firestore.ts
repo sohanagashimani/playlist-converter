@@ -1,9 +1,6 @@
 import { firestore } from "./firebase";
 
 class FirestoreService {
-  /**
-   * Create a new conversion job with auto-generated ID
-   */
   async createConversionJob(data: any): Promise<string | null> {
     try {
       const docRef = await firestore.collection("conversion-jobs").add({
