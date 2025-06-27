@@ -39,9 +39,9 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-100 md:p-6 hover:shadow-lg transition-shadow p-4">
       {/* Simple Service Flow Indicator */}
-      <div className="flex items-center justify-center space-x-6 mb-8">
-        <div className="flex items-center space-x-3">
-          <div className="p-3 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+      <div className="flex items-center justify-center space-x-4 md:space-x-6 mb-8">
+        <div className="flex items-center space-x-2 md:space-x-3">
+          <div className="p-2 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
             <SpotifyIcon className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
           <div>
@@ -58,8 +58,8 @@ const ConversionFlow: React.FC<ConversionFlowProps> = ({
           <ArrowRightIcon className="h-4 w-4 md:h-5 md:w-5" />
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="p-3 md:w-14 md:h-14 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
+        <div className="flex items-center space-x-2 md:space-x-3">
+          <div className="p-2 md:w-14 md:h-14 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
             <YouTubeMusicIcon className="w-5 h-5 md:w-7 md:h-7 text-white" />
           </div>
           <div>

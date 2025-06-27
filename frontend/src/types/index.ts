@@ -57,4 +57,8 @@ export interface ConversionProgress {
   currentTrack?: string;
   processed?: number;
   total?: number;
+  tracksProcessed?: number;
+  tracksToAdd?: number;
+  tracksAdded?: number;
+  tracksFailed?: number;
 }

@@ -43,7 +43,64 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
     }
   };
 
+  // Determine what to show in the current activity section
+  const getCurrentActivity = () => {
+    const {
+      currentTrack,
+      message,
+      stage,
+      tracksProcessed,
+      tracksToAdd,
+      tracksAdded,
+    } = progress;
+
+    // If we have a message that indicates adding to playlist, show enhanced feedback
+    if (message && message.includes("Adding") && message.includes("playlist")) {
+      let enhancedMessage = message;
+
+      // Add success/failure details if available
+      if (tracksProcessed && tracksToAdd && tracksAdded !== undefined) {
+        const remaining = tracksToAdd - tracksProcessed;
+        enhancedMessage = `Adding tracks to playlist... (${tracksProcessed}/${tracksToAdd})`;
+        if (tracksAdded > 0) {
+          enhancedMessage += ` - ${tracksAdded} added successfully`;
+        }
+        if (remaining > 0) {
+          enhancedMessage += `, ${remaining} remaining`;
+        }
+      }
+
+      return {
+        label: "Current activity:",
+        content: enhancedMessage,
+      };
+    }
+
+    // If we're in converting tracks stage and have a currentTrack, show searching feedback
+    if (
+      stage === "converting-tracks" &&
+      currentTrack &&
+      (!message || !message.includes("Adding"))
+    ) {
+      return {
+        label: "Currently searching:",
+        content: currentTrack,
+      };
+    }
+
+    // Show general message if available
+    if (message) {
+      return {
+        label: "Status:",
+        content: message,
+      };
+    }
+
+    return null;
+  };
+
   const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
+  const currentActivity = getCurrentActivity();
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -76,11 +133,11 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
           className="mb-4"
         />
 
-        {progress.currentTrack && (
+        {currentActivity && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-            <Text strong>Currently processing:</Text>
+            <Text strong>{currentActivity.label}</Text>
             <br />
-            <Text className="text-gray-600">{progress.currentTrack}</Text>
+            <Text className="text-gray-600">{currentActivity.content}</Text>
           </div>
         )}
 

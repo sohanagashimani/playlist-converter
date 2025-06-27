@@ -133,11 +133,23 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
               showInfo={true}
             />
 
-            {/* Show track processing info during search phase */}
-            {progress.processed !== undefined && progress.total && (
+            {/* Show track processing info - phase-aware */}
+            {progress.stage === "converting-tracks" &&
+            progress.message &&
+            progress.message.includes("Adding") &&
+            progress.tracksProcessed !== undefined &&
+            progress.tracksToAdd ? (
               <Text className="text-sm text-gray-500">
-                Processed {progress.processed} of {progress.total} tracks
+                Adding {progress.tracksProcessed} of {progress.tracksToAdd}{" "}
+                tracks to playlist
               </Text>
+            ) : (
+              progress.processed !== undefined &&
+              progress.total && (
+                <Text className="text-sm text-gray-500">
+                  Processed {progress.processed} of {progress.total} tracks
+                </Text>
+              )
             )}
           </div>
 

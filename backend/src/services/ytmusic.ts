@@ -11,15 +11,6 @@ class YTMusicService {
   /**
    * Get authentication headers for service-to-service calls (currently disabled)
    */
-  private async getAuthHeaders(
-    silent: boolean = false
-  ): Promise<{ [key: string]: string }> {
-    // Temporarily disabled authentication for simplicity
-    if (!silent) {
-      console.log("🔓 Using unauthenticated requests to ytmusic service");
-    }
-    return {};
-  }
 
   /**
    * Search for a track on YouTube Music
@@ -32,7 +23,6 @@ class YTMusicService {
       const searchQuery = `${title} ${artist}`.trim();
       console.log(`🔍 Searching YouTube Music for: "${searchQuery}"`);
 
-      const headers = await this.getAuthHeaders();
       const response = await axios.post(
         `${this.baseUrl}/search`,
         {
@@ -40,7 +30,7 @@ class YTMusicService {
           title,
           artist,
         },
-        { headers }
+        {}
       );
 
       if (response.data.success && response.data.result) {
@@ -70,18 +60,13 @@ class YTMusicService {
     try {
       console.log(`📝 Creating YouTube Music playlist: "${title}"`);
 
-      const headers = await this.getAuthHeaders();
-      const response = await axios.post(
-        `${this.baseUrl}/create-playlist`,
-        {
-          title,
-          description:
-            description ||
-            `Converted from Spotify playlist - ${new Date().toLocaleDateString()}`,
-          conversionId,
-        },
-        { headers }
-      );
+      const response = await axios.post(`${this.baseUrl}/create-playlist`, {
+        title,
+        description:
+          description ||
+          `Converted from Spotify playlist - ${new Date().toLocaleDateString()}`,
+        conversionId,
+      });
 
       if (response.data.success && response.data.playlist) {
         console.log(
@@ -117,14 +102,13 @@ class YTMusicService {
     videoId: string
   ): Promise<boolean> {
     try {
-      const headers = await this.getAuthHeaders();
       const response = await axios.post(
         `${this.baseUrl}/add-to-playlist`,
         {
           playlistId,
           videoId,
         },
-        { headers }
+        {}
       );
 
       if (response.data.success) {
@@ -202,10 +186,8 @@ class YTMusicService {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const headers = await this.getAuthHeaders(true); // Silent mode for health checks
       const response = await axios.get(`${this.baseUrl}/health`, {
         timeout: 5000,
-        headers,
       });
       return response.status === 200;
     } catch (error) {

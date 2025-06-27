@@ -39,7 +39,6 @@ export const useConversion = () => {
         docSnapshot => {
           if (docSnapshot.exists()) {
             const data = docSnapshot.data();
-
             setProgress({
               stage: data.status || "idle",
               progress: data.progress || 0,
@@ -47,6 +46,10 @@ export const useConversion = () => {
               currentTrack: data.result?.currentTrack,
               processed: data.result?.processed,
               total: data.result?.total,
+              tracksProcessed: data.result?.tracksProcessed,
+              tracksToAdd: data.result?.tracksToAdd,
+              tracksAdded: data.result?.tracksAdded,
+              tracksFailed: data.result?.tracksFailed,
             });
 
             if (data.status === "completed" && data.result) {
@@ -103,6 +106,7 @@ export const useConversion = () => {
         unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversionId]);
 
   const handleConversionStart = async (spotifyUrl: string) => {
