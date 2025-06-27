@@ -106,7 +106,6 @@ export const useConversion = () => {
         unsubscribe();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversionId]);
 
   const handleConversionStart = async (spotifyUrl: string) => {
@@ -188,14 +187,12 @@ export const useConversion = () => {
   };
 
   return {
-    // State
     isConverting,
     conversionResult,
     progress,
     conversionId,
     showStatusChecker,
 
-    // Actions
     handleConversionStart,
     handleReset,
     handleViewResults,

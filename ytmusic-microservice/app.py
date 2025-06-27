@@ -13,21 +13,21 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# Import ytmusicapi
+
 try:
     from ytmusicapi import YTMusic
 except ImportError:
     print("❌ ytmusicapi not installed. Run: pip install ytmusicapi")
     exit(1)
 
-# Configure logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
-# Global instances
+
 ytmusic: Optional[YTMusic] = None
 db: Optional[Any] = None  # Use Any instead of firestore.Client to avoid import issues
 
@@ -36,20 +36,20 @@ def init_firestore():
     global db
     
     try:
-        # Initialize Firebase Admin if not already done
+
         if not firebase_admin._apps:
-            # Check for GOOGLE_APPLICATION_CREDENTIALS first (base64 encoded in Cloud Run)
+
             google_creds = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
             if google_creds:
                 try:
-                    # Try to parse as base64 encoded JSON first
+
                     service_account = json.loads(
                         base64.b64decode(google_creds).decode()
                     )
                     logger.info("✅ Using base64 decoded credentials")
                 except:
                     try:
-                        # If not base64, try to parse as direct JSON
+
                         service_account = json.loads(google_creds)
                         logger.info("✅ Using direct JSON credentials")
                     except:
@@ -59,7 +59,7 @@ def init_firestore():
                 cred = credentials.Certificate(service_account)
                 project_id = service_account['project_id']
             else:
-                # Fallback to file-based credentials
+
                 service_account_path = 'serviceAccountKey.json'
                 if os.path.exists(service_account_path):
                     cred = credentials.Certificate(service_account_path)
@@ -90,7 +90,7 @@ def init_ytmusic():
     try:
         oauth_file = os.getenv('YTMUSIC_OAUTH_FILE', 'auth/oauth.json')
         
-        # Try different locations for OAuth file
+
         if not os.path.exists(oauth_file):
             oauth_file = '/app/auth/oauth.json'
         
@@ -98,11 +98,11 @@ def init_ytmusic():
             logger.error("❌ OAuth file not found")
             return False
         
-        # Load client credentials from environment or file
+
         client_id = os.getenv('GOOGLE_CLIENT_ID')
         client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
         
-        # If not in environment, try to load from credentials file
+
         if not client_id or not client_secret:
             creds_file = os.getenv('OAUTH_CREDENTIALS_FILE', 'auth/oauth_credentials.json')
             if not os.path.exists(creds_file):
@@ -118,21 +118,21 @@ def init_ytmusic():
             logger.error("❌ OAuth client credentials not found")
             return False
         
-        # Try to use the proper ytmusicapi OAuth classes
+
         try:
             from ytmusicapi.auth.oauth import OAuthCredentials, RefreshingToken
             
-            # Create OAuth credentials
+
             oauth_credentials = OAuthCredentials(
                 client_id=client_id,
                 client_secret=client_secret
             )
             
-            # Load the existing token and create a RefreshingToken
+
             with open(oauth_file, 'r') as f:
                 token_data = json.load(f)
             
-            # Create RefreshingToken that will automatically refresh when needed
+
             refreshing_token = RefreshingToken(
                 scope=token_data.get('scope', 'https://www.googleapis.com/auth/youtube'),
                 token_type=token_data.get('token_type', 'Bearer'),
@@ -144,10 +144,10 @@ def init_ytmusic():
                 _local_cache=oauth_file  # This will auto-save token updates
             )
             
-            # Store the refreshing token to file and initialize YTMusic with it
+
             refreshing_token.store_token(oauth_file)
             
-            # Initialize YTMusic with oauth credentials and the oauth file
+
             ytmusic = YTMusic(oauth_file, oauth_credentials=oauth_credentials)
             logger.info("✅ YTMusic initialized with RefreshingToken (auto-refresh enabled)")
             
@@ -155,24 +155,24 @@ def init_ytmusic():
             logger.warning(f"⚠️ ytmusicapi OAuth classes not available: {str(e)}")
             logger.warning("⚠️ Falling back to manual token refresh...")
             
-            # Fallback to manual token refresh (your existing implementation)
+
             with open(oauth_file, 'r') as f:
                 oauth_data = json.load(f)
             
-            # Check if token is expired
+
             expires_at = oauth_data.get('expires_at', 0)
             current_time = time.time()
             
             if current_time > expires_at:
                 logger.warning("⚠️ OAuth token has expired, attempting to refresh...")
                 
-                # Try to refresh the token
+
                 refresh_token = oauth_data.get('refresh_token')
                 if not refresh_token:
                     logger.error("❌ No refresh token available. Please re-authenticate.")
                     return False
                 
-                # Refresh the token using requests
+
                 import requests
                 
                 token_refresh_data = {
@@ -191,12 +191,12 @@ def init_ytmusic():
                     if response.status_code == 200:
                         token_data = response.json()
                         
-                        # Update the oauth file with new token
+
                         oauth_data['access_token'] = token_data['access_token']
                         oauth_data['expires_in'] = token_data['expires_in']
                         oauth_data['expires_at'] = current_time + token_data['expires_in']
                         
-                        # Save updated oauth file
+
                         with open(oauth_file, 'w') as f:
                             json.dump(oauth_data, f, indent=2)
                         
@@ -209,13 +209,13 @@ def init_ytmusic():
                     logger.error(f"❌ Token refresh error: {str(e)}")
                     return False
             
-            # Initialize with simple oauth file
+
             ytmusic = YTMusic(oauth_file)
             logger.info("✅ YTMusic initialized with oauth file (manual refresh)")
         
-        # Test the authentication by making a simple API call
+
         try:
-            # Try to get user playlists to verify authentication
+
             test_result = ytmusic.get_library_playlists(limit=1)
             logger.info("✅ YouTube Music authentication verified")
             return True
@@ -232,7 +232,7 @@ def init_ytmusic():
 
 def normalize_string(s: str) -> str:
     """Normalize string for better matching"""
-    # Remove special characters, convert to lowercase
+
     return re.sub(r'[^\w\s]', '', s.lower().strip())
 
 def calculate_similarity(str1: str, str2: str) -> float:
@@ -262,10 +262,10 @@ def find_best_match(query_title: str, query_artist: str, results: List[Dict]) ->
             if not title:
                 continue
             
-            # Calculate title similarity
+
             title_score = calculate_similarity(query_title, title)
             
-            # Calculate artist similarity - check against ALL artists in the query
+
             artist_score = 0.0
             if artists:
                 artist_scores = []
@@ -274,21 +274,21 @@ def find_best_match(query_title: str, query_artist: str, results: List[Dict]) ->
                 for artist in artists:
                     artist_name = artist.get('name', '') if isinstance(artist, dict) else str(artist)
                     if artist_name:
-                        # Check against each artist in the query
+
                         for qa in query_artists:
                             score = calculate_similarity(qa, artist_name)
                             artist_scores.append(score)
                 
                 artist_score = max(artist_scores) if artist_scores else 0.0
             
-            # Combined score (weighted: title 70%, artist 30% - prioritize title match)
+
             combined_score = (title_score * 0.7) + (artist_score * 0.3)
             
-            # Bonus for exact matches
+
             if normalize_string(title) == normalize_string(query_title):
                 combined_score += 0.15
             
-            # Lower threshold for acceptance - 0.4 instead of 0.6
+
             logger.info(f"Result {i+1}: '{title}' - Title: {title_score:.2f}, Artist: {artist_score:.2f}, Combined: {combined_score:.2f}")
             
             if combined_score > best_score and combined_score > 0.4:
@@ -306,18 +306,18 @@ def find_best_match(query_title: str, query_artist: str, results: List[Dict]) ->
     
     return best_match
 
-# Conversion tracking functions
+
 def store_conversion_data(data: Dict) -> Optional[str]:
     """Store conversion data in Firestore and return the auto-generated document ID"""
     try:
         if db is None:
             return None
         
-        # Add timestamps
+
         data['created_at'] = datetime.now().isoformat()
         data['updated_at'] = datetime.now().isoformat()
         
-        # Create document with auto-generated ID
+
         doc_ref = db.collection('conversion-jobs').add(data)
         return doc_ref[1].id  # doc_ref is a tuple (update_time, document_reference)
     except Exception as e:
@@ -391,7 +391,7 @@ def start_conversion():
         if not spotify_url:
             return jsonify({'success': False, 'error': 'Spotify URL is required'}), 400
         
-        # Create conversion data with auto-generated Firestore ID
+
         conversion_data = {
             'spotify_url': spotify_url,
             'playlist_title': playlist_title,
@@ -455,12 +455,12 @@ def search_track():
         if not ytmusic:
             return jsonify({'success': False, 'error': 'YTMusic not initialized'}), 500
         
-        # Use provided query or construct from title+artist
+
         search_query = query if query else f"{title} {artist}"
         
         logger.info(f"🔍 Searching: '{search_query}'")
         
-        # Search on YouTube Music
+
         search_results = ytmusic.search(search_query, filter='songs', limit=10)
         
         if not search_results:
@@ -471,7 +471,7 @@ def search_track():
                 'message': 'No results found'
             })
         
-        # Find best match using fuzzy matching
+
         best_match = find_best_match(title, artist, search_results)
         
         if not best_match:
@@ -482,10 +482,10 @@ def search_track():
                 'message': 'No suitable match found'
             })
         
-        # Debug: Check best_match type
+
         logger.debug(f"🔍 best_match type: {type(best_match)}, value: {best_match}")
         
-        # Ensure best_match is a dictionary
+
         if not isinstance(best_match, dict):
             logger.error(f"❌ best_match is not a dict: {type(best_match)} - {best_match}")
             return jsonify({
@@ -493,7 +493,7 @@ def search_track():
                 'error': 'Invalid search result format'
             }), 500
         
-        # Format result
+
         result = {
             'videoId': best_match.get('videoId'),
             'title': best_match.get('title'),
@@ -532,7 +532,7 @@ def search_single_track(track_data: Dict) -> Dict:
         
         search_query = f"{title} {artist}"
         
-        # Search on YouTube Music
+
         if ytmusic is None:
             return {
                 'success': False,
@@ -551,7 +551,7 @@ def search_single_track(track_data: Dict) -> Dict:
                 'originalArtist': artist
             }
         
-        # Find best match using fuzzy matching
+
         best_match = find_best_match(title, artist, search_results)
         
         if not best_match:
@@ -562,7 +562,7 @@ def search_single_track(track_data: Dict) -> Dict:
                 'originalArtist': artist
             }
         
-        # Format result
+
         result = {
             'videoId': best_match.get('videoId'),
             'title': best_match.get('title'),
@@ -604,14 +604,14 @@ def search_batch():
         
         results = []
         
-        # Use ThreadPoolExecutor for parallel processing
+
         max_workers = min(10, len(tracks))  # Limit concurrent requests to avoid overwhelming the API
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all search tasks
+
             future_to_track = {executor.submit(search_single_track, track): track for track in tracks}
             
-            # Collect results as they complete
+
             for future in as_completed(future_to_track):
                 track = future_to_track[future]
                 try:
@@ -632,8 +632,8 @@ def search_batch():
                         'originalArtist': track.get('artist', '')
                     })
         
-        # Sort results to match original order
-        # This is approximate since we don't maintain strict order in parallel processing
+
+
         successful_count = sum(1 for r in results if r['success'])
         failed_count = len(results) - successful_count
         
@@ -677,10 +677,10 @@ def create_playlist():
             logger.error("❌ Playlist title is empty or missing")
             return jsonify({'success': False, 'error': 'Playlist title is required'}), 400
         
-        # Check if conversion is cancelled before proceeding
+
         if conversion_id and db:
             try:
-                # Check Firestore to see if conversion was cancelled
+
                 conversion_doc = db.collection('conversion-jobs').document(conversion_id).get()
                 if conversion_doc.exists:
                     conversion_data = conversion_doc.to_dict()
@@ -693,7 +693,7 @@ def create_playlist():
                         }), 409  # Conflict status
             except Exception as e:
                 logger.warning(f"⚠️ Could not check conversion status for {conversion_id}: {str(e)}")
-                # Continue anyway - maybe Firestore is unavailable
+
         
         if not ytmusic:
             logger.error("❌ YTMusic instance is not initialized")
@@ -701,12 +701,12 @@ def create_playlist():
         
         logger.info(f"📝 Creating PUBLIC YouTube Music playlist: '{title}'")
         
-        # Create playlist as PUBLIC only
+
         playlist_result = ytmusic.create_playlist(title, description, privacy_status='PUBLIC')
         logger.info(f"✅ PUBLIC playlist creation successful")
         logger.info(f"📊 Playlist result type: {type(playlist_result)}, value: {playlist_result}")
         
-        # Handle both string ID and dict response
+
         if isinstance(playlist_result, dict):
             logger.error(f"❌ Playlist creation returned dict (error): {playlist_result}")
             return jsonify({
@@ -758,7 +758,7 @@ def add_to_playlist():
         if not data:
             return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
         
-        # Handle case where playlistId might be a dict object
+
         playlist_id_raw = data.get('playlistId', '')
         if isinstance(playlist_id_raw, dict):
             logger.error(f"❌ Received dict as playlistId: {playlist_id_raw}")
@@ -775,10 +775,10 @@ def add_to_playlist():
         
         logger.info(f"➕ Adding track {video_id} to playlist {playlist_id}")
         
-        # Add track to playlist
+
         result = ytmusic.add_playlist_items(playlist_id, [video_id])
         
-        # Handle both dict and string results
+
         if isinstance(result, dict) and result.get('status') == 'STATUS_SUCCEEDED':
             logger.info(f"✅ Successfully added track to playlist")
             return jsonify({
@@ -829,11 +829,11 @@ def add_batch_to_playlist():
         
         logger.info(f"📚 Adding {len(video_ids)} tracks to playlist {playlist_id}")
         
-        # YouTube Music API can handle batch adding, but let's add some error handling
+
         try:
             result = ytmusic.add_playlist_items(playlist_id, video_ids)
             
-            # Handle both dict and string results
+
             if isinstance(result, dict) and result.get('status') == 'STATUS_SUCCEEDED':
                 logger.info(f"✅ Successfully added {len(video_ids)} tracks to playlist")
                 return jsonify({
@@ -882,7 +882,7 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
-    # Initialize Firestore
+  # Initialize Firestore
     if not init_firestore():
         logger.warning("⚠️  Firestore not available - conversion tracking disabled")
     
@@ -892,6 +892,7 @@ if __name__ == '__main__':
         exit(1)
     
     # Start Flask app
+
     port = int(os.getenv('PORT', 8000))
     host = os.getenv('HOST', '0.0.0.0')
     

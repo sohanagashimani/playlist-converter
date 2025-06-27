@@ -80,8 +80,6 @@ const ConversionStatus: React.FC<ConversionStatusProps> = ({
 
   const handleViewResults = () => {
     if (progress.stage === "completed") {
-      // The result should be passed from the parent component
-      // Since useConversion already handles this, we just need to trigger it
       onViewResults({} as ConversionResult); // Parent will handle the actual result
     }
   };

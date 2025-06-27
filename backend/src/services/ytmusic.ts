@@ -79,7 +79,6 @@ class YTMusicService {
         );
       }
     } catch (error: any) {
-      // Handle cancellation specifically
       if (error.response?.status === 409 && error.response?.data?.cancelled) {
         console.log("🛑 Playlist creation aborted - conversion was cancelled");
         throw new Error("CONVERSION_CANCELLED");
@@ -149,7 +148,6 @@ class YTMusicService {
     let success = 0;
     let failed = 0;
 
-    // Add tracks one by one with small delay to avoid rate limiting
     for (let i = 0; i < videoIds.length; i++) {
       const videoId = videoIds[i];
       const result = await this.addTrackToPlaylist(playlistId, videoId);
@@ -159,12 +157,10 @@ class YTMusicService {
         failed++;
       }
 
-      // Call progress callback if provided
       if (onProgress) {
         await onProgress(i + 1, videoIds.length, success, failed);
       }
 
-      // Small delay between requests
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 

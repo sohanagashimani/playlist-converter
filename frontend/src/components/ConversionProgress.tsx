@@ -43,7 +43,6 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
     }
   };
 
-  // Determine what to show in the current activity section
   const getCurrentActivity = () => {
     const {
       currentTrack,
@@ -54,11 +53,9 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
       tracksAdded,
     } = progress;
 
-    // If we have a message that indicates adding to playlist, show enhanced feedback
     if (message && message.includes("Adding") && message.includes("playlist")) {
       let enhancedMessage = message;
 
-      // Add success/failure details if available
       if (tracksProcessed && tracksToAdd && tracksAdded !== undefined) {
         const remaining = tracksToAdd - tracksProcessed;
         enhancedMessage = `Adding tracks to playlist... (${tracksProcessed}/${tracksToAdd})`;
@@ -76,7 +73,6 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
       };
     }
 
-    // If we're in converting tracks stage and have a currentTrack, show searching feedback
     if (
       stage === "converting-tracks" &&
       currentTrack &&
@@ -88,7 +84,6 @@ const ConversionProgress: React.FC<ConversionProgressProps> = ({
       };
     }
 
-    // Show general message if available
     if (message) {
       return {
         label: "Status:",

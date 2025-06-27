@@ -7,7 +7,6 @@ class ConversionJobService {
   private readonly MAX_CONCURRENT_JOBS = 3; // Reduced from 5 to 3 for free tier
   private readonly API_CALL_DELAY = 500; // Increased from 200ms to 500ms to be more conservative
 
-  // Track cancelled conversions to stop processing
   private cancelledConversions = new Set<string>();
 
   /**
@@ -24,10 +23,8 @@ class ConversionJobService {
     conversionId: string
   ): Promise<{ success: boolean; message: string }> {
     try {
-      // Add to cancelled set
       this.cancelledConversions.add(conversionId);
 
-      // Update Firestore status
       await firestoreService.updateConversionStatus(
         conversionId,
         "cancelled",
@@ -38,7 +35,6 @@ class ConversionJobService {
         }
       );
 
-      // Remove from active jobs
       await firestoreService.removeActiveJob(conversionId);
 
       console.log(`❌ Conversion ${conversionId} cancelled by user`);
@@ -77,7 +73,6 @@ class ConversionJobService {
     spotifyPlaylistUrl: string
   ): Promise<{ conversionId: string; success: boolean; error?: string }> {
     try {
-      // Validate URL first
       if (!spotifyPlaylistUrl) {
         return {
           conversionId: "",
@@ -86,7 +81,6 @@ class ConversionJobService {
         };
       }
 
-      // Check concurrency limit using Firestore
       const activeJobsCount = await firestoreService.getActiveJobsCount();
       if (activeJobsCount >= this.MAX_CONCURRENT_JOBS) {
         return {
@@ -96,7 +90,6 @@ class ConversionJobService {
         };
       }
 
-      // Check if YouTube Music service is available
       const ytMusicHealthy = await ytmusicService.healthCheck();
       if (!ytMusicHealthy) {
         return {
@@ -107,7 +100,6 @@ class ConversionJobService {
         };
       }
 
-      // Create conversion job with auto-generated Firestore ID
       const initialData = {
         spotifyPlaylistUrl,
         status: "started",
@@ -125,10 +117,8 @@ class ConversionJobService {
         };
       }
 
-      // Add to active jobs in Firestore
       await firestoreService.addActiveJob(conversionId);
 
-      // Start background processing (no await - let it run async)
       this.processConversionInBackground(conversionId, spotifyPlaylistUrl);
 
       const updatedActiveCount = await firestoreService.getActiveJobsCount();
@@ -155,7 +145,6 @@ class ConversionJobService {
     spotifyPlaylistUrl: string
   ): Promise<void> {
     try {
-      // Check if cancelled before starting
       if (this.isConversionCancelled(conversionId)) {
         console.log(
           `⏹️ Conversion ${conversionId} was cancelled before processing started`
@@ -163,21 +152,18 @@ class ConversionJobService {
         return;
       }
 
-      // Update status to processing
       await firestoreService.updateConversionStatus(
         conversionId,
         "fetching-spotify",
         10
       );
 
-      // Step 1: Fetch Spotify playlist
       console.log(`📡 ${conversionId}: Fetching Spotify playlist...`);
       const spotifyPlaylist = await spotifyService.getPlaylist(
         spotifyPlaylistUrl
       );
       const tracks = spotifyService.getSimplifiedTracks(spotifyPlaylist);
 
-      // Check if cancelled after Spotify fetch
       if (this.isConversionCancelled(conversionId)) {
         console.log(
           `⏹️ Conversion ${conversionId} cancelled after Spotify fetch`
@@ -201,14 +187,12 @@ class ConversionJobService {
         `📝 ${conversionId}: Found ${tracks.length} tracks to convert`
       );
 
-      // Update progress
       await firestoreService.updateConversionStatus(
         conversionId,
         "creating-playlist",
         20
       );
 
-      // Check if cancelled before creating playlist
       if (this.isConversionCancelled(conversionId)) {
         console.log(
           `⏹️ Conversion ${conversionId} cancelled before playlist creation`
@@ -216,7 +200,6 @@ class ConversionJobService {
         return;
       }
 
-      // Step 2: Create YouTube Music playlist
       const ytPlaylistTitle = `${spotifyPlaylist.name} (Converted)`;
       const ytPlaylistDescription = `Converted from Spotify playlist: ${spotifyPlaylist.name}\nOriginal URL: ${spotifyPlaylistUrl}`;
 
@@ -227,7 +210,6 @@ class ConversionJobService {
         conversionId
       );
 
-      // Check if cancelled after playlist creation
       if (this.isConversionCancelled(conversionId)) {
         console.log(
           `⏹️ Conversion ${conversionId} cancelled after playlist creation`
@@ -235,14 +217,12 @@ class ConversionJobService {
         return;
       }
 
-      // Update progress
       await firestoreService.updateConversionStatus(
         conversionId,
         "converting-tracks",
         30
       );
 
-      // Step 3: Search and convert tracks
       console.log(
         `🔍 ${conversionId}: Starting track search and conversion...`
       );
@@ -252,7 +232,6 @@ class ConversionJobService {
       for (let i = 0; i < tracks.length; i++) {
         const track = tracks[i];
 
-        // Check for cancellation before each track
         if (this.isConversionCancelled(conversionId)) {
           console.log(
             `⏹️ Conversion ${conversionId} cancelled during track ${i + 1}/${
@@ -262,7 +241,6 @@ class ConversionJobService {
           return;
         }
 
-        // Searching takes 30-65% (35% total), leaving more room for playlist addition
         const trackProgress = 30 + Math.floor((i / tracks.length) * 35);
 
         await firestoreService.updateConversionStatus(
@@ -290,9 +268,7 @@ class ConversionJobService {
         };
 
         try {
-          // API rate limiting: Add delay before API call to prevent overwhelming YouTube Music
           if (i > 0) {
-            // Skip delay for first track
             await this.apiCallDelay();
           }
 
@@ -319,7 +295,6 @@ class ConversionJobService {
         conversionTracks.push(conversionTrack);
       }
 
-      // Update progress to adding phase (Track searching is now complete at 65%)
       await firestoreService.updateConversionStatus(
         conversionId,
         "converting-tracks",
@@ -331,13 +306,11 @@ class ConversionJobService {
         }
       );
 
-      // Step 4: Add successful tracks to YouTube Music playlist
       console.log(
         `➕ ${conversionId}: Adding ${videoIds.length} tracks to playlist...`
       );
       let addResults = { success: 0, failed: 0 };
       if (videoIds.length > 0) {
-        // Check for cancellation before starting playlist addition
         if (this.isConversionCancelled(conversionId)) {
           console.log(
             `⏹️ Conversion ${conversionId} cancelled before playlist addition`
@@ -345,7 +318,6 @@ class ConversionJobService {
           return;
         }
 
-        // Use dynamic progress during playlist addition
         addResults = await ytmusicService.addTracksToPlaylist(
           ytPlaylist.playlistId,
           videoIds,
@@ -355,7 +327,6 @@ class ConversionJobService {
             success: number,
             failed: number
           ) => {
-            // Check for cancellation during each track addition
             if (this.isConversionCancelled(conversionId)) {
               console.log(
                 `⏹️ Conversion ${conversionId} cancelled during playlist addition (${current}/${total})`
@@ -363,7 +334,6 @@ class ConversionJobService {
               return;
             }
 
-            // Progress from 65% to 95% during playlist addition (30% total)
             const addProgress = Math.floor(65 + (current / total) * 30);
 
             await firestoreService.updateConversionStatus(
@@ -382,7 +352,6 @@ class ConversionJobService {
           }
         );
 
-        // Final update for playlist addition phase
         await firestoreService.updateConversionStatus(
           conversionId,
           "converting-tracks",
@@ -395,7 +364,6 @@ class ConversionJobService {
           }
         );
       } else {
-        // No tracks to add
         await firestoreService.updateConversionStatus(
           conversionId,
           "converting-tracks",
@@ -408,7 +376,6 @@ class ConversionJobService {
         );
       }
 
-      // Step 5: Prepare final result
       const successfulTracks = conversionTracks.filter(
         track => track.success
       ).length;
@@ -431,7 +398,6 @@ class ConversionJobService {
         timestamp: new Date().toISOString(),
       };
 
-      // Final cancellation check before marking as completed
       if (this.isConversionCancelled(conversionId)) {
         console.log(
           `⏹️ Conversion ${conversionId} cancelled before final completion`
@@ -439,7 +405,6 @@ class ConversionJobService {
         return;
       }
 
-      // Final update - mark as completed
       await firestoreService.updateConversionStatus(
         conversionId,
         "completed",
@@ -453,7 +418,6 @@ class ConversionJobService {
     } catch (error: any) {
       console.error(`❌ Conversion ${conversionId} failed:`, error.message);
 
-      // Handle cancellation specifically - don't mark as failed
       if (error.message === "CONVERSION_CANCELLED") {
         console.log(
           `🛑 Conversion ${conversionId} was cancelled during processing`
@@ -478,10 +442,8 @@ class ConversionJobService {
         );
       }
     } finally {
-      // Remove from active jobs when done (success or failure)
       await firestoreService.removeActiveJob(conversionId);
 
-      // Clean up cancellation tracking
       this.cleanupCancelledConversion(conversionId);
 
       const remainingActiveJobs = await firestoreService.getActiveJobsCount();

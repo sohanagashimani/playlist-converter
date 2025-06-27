@@ -12,7 +12,6 @@ import {
   ApiResponse,
 } from "../types";
 
-// Global rate limiting for all conversion requests (stays within free tier)
 const globalConversionLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   limit: 3, // Max 3 total conversions per minute (~4,320/day = safe for 20K writes)
@@ -26,7 +25,6 @@ const globalConversionLimit = rateLimit({
   keyGenerator: () => "global", // Single key for all requests
 });
 
-// Per-IP rate limiting for conversion endpoints
 const conversionRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   limit: 5, // Reduced from 10 to 5 per IP to be more conservative
@@ -200,7 +198,6 @@ router.post(
       } as ApiResponse<null>);
     }
 
-    // Check if YouTube Music service is available
     const ytMusicHealthy = await ytmusicService.healthCheck();
     if (!ytMusicHealthy) {
       return res.status(503).json({
@@ -210,7 +207,6 @@ router.post(
       } as ApiResponse<null>);
     }
 
-    // Create conversion job with auto-generated Firestore ID for tracking
     const conversionData = {
       spotifyPlaylistUrl,
       status: "processing",
@@ -232,7 +228,6 @@ router.post(
     );
 
     try {
-      // Step 1: Fetch Spotify playlist
       const spotifyPlaylist = await spotifyService.getPlaylist(
         spotifyPlaylistUrl
       );
@@ -247,7 +242,6 @@ router.post(
 
       console.log(`📝 Found ${tracks.length} tracks to convert`);
 
-      // Step 2: Create YouTube Music playlist
       const ytPlaylistTitle = `${spotifyPlaylist.name} (Converted)`;
       const ytPlaylistDescription = `Converted from Spotify playlist: ${spotifyPlaylist.name}\nOriginal URL: ${spotifyPlaylistUrl}`;
 
@@ -256,7 +250,6 @@ router.post(
         ytPlaylistDescription
       );
 
-      // Step 3: Search and convert tracks
       const conversionTracks: ConversionTrack[] = [];
       const videoIds: string[] = [];
 
@@ -299,7 +292,6 @@ router.post(
         conversionTracks.push(conversionTrack);
       }
 
-      // Step 4: Add successful tracks to YouTube Music playlist
       console.log(
         `➕ ${conversionId}: Adding ${videoIds.length} tracks to playlist...`
       );
@@ -310,7 +302,6 @@ router.post(
         );
       }
 
-      // Step 5: Prepare conversion result
       const successfulTracks = conversionTracks.filter(
         track => track.success
       ).length;
