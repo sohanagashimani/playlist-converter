@@ -699,12 +699,13 @@ def create_playlist():
             logger.error("❌ YTMusic instance is not initialized")
             return jsonify({'success': False, 'error': 'YTMusic not initialized'}), 500
         
-        logger.info(f"📝 Creating PUBLIC YouTube Music playlist: '{title}'")
+        logger.info(f"📝 Creating UNLISTED YouTube Music playlist: '{title}'")
         
 
-        playlist_result = ytmusic.create_playlist(title, description, privacy_status='PUBLIC')
-        logger.info(f"✅ PUBLIC playlist creation successful")
+        playlist_result = ytmusic.create_playlist(title, description, privacy_status='UNLISTED')
+        logger.info(f"✅ UNLISTED playlist creation successful")
         logger.info(f"📊 Playlist result type: {type(playlist_result)}, value: {playlist_result}")
+        logger.info(f"📊 Playlist result repr: {repr(playlist_result)}")
         
 
         if isinstance(playlist_result, dict):
@@ -715,7 +716,16 @@ def create_playlist():
             }), 500
         
         playlist_id = str(playlist_result).strip()
-        logger.info(f"📋 Extracted playlist ID: '{playlist_id}' (type: {type(playlist_id)})")
+        logger.info(f"📋 Extracted playlist ID: '{playlist_id}' (type: {type(playlist_id)}, length: {len(playlist_id)})")
+        logger.info(f"📋 Playlist ID repr: {repr(playlist_id)}")
+        logger.info(f"📋 Playlist ID bytes: {playlist_id.encode('utf-8')}")
+        
+        # Test if we can immediately access the created playlist
+        try:
+            test_access = ytmusic.get_playlist(playlist_id, limit=1)
+            logger.info(f"✅ Newly created playlist is immediately accessible: {test_access.get('title', 'Unknown')}")
+        except Exception as e:
+            logger.warning(f"⚠️ Newly created playlist not immediately accessible: {str(e)}")
         
         if not playlist_id:
             logger.error("❌ Playlist ID is empty after creation")
@@ -866,6 +876,8 @@ def add_batch_to_playlist():
             'success': False,
             'error': f'Failed to add tracks to playlist: {str(e)}'
         }), 500
+
+
 
 @app.errorhandler(404)
 def not_found(error):

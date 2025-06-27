@@ -42,7 +42,7 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
   const [pageSize, setPageSize] = useState(defaultView === "cards" ? 12 : 20);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"cards" | "table">(defaultView);
-
+  const [isResetting, setIsResetting] = useState(false);
   const filteredTracks = result.tracks.filter(
     track =>
       track.originalTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -174,8 +174,13 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
             </Title>
             <Button
               icon={<ReloadOutlined />}
-              onClick={onReset}
+              onClick={async () => {
+                setIsResetting(true);
+                await onReset();
+                setIsResetting(false);
+              }}
               className="btn-secondary lg:order-last"
+              loading={isResetting}
             >
               Convert Another Playlist
             </Button>

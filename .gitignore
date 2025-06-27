@@ -152,4 +152,4 @@ credentials.json
 config.json
 secrets.json
 
-setup_oauth.py
+delete_playlists.py

@@ -71,7 +71,16 @@ class SpotifyService {
       );
     }
 
-    return match[1];
+    const playlistId = match[1];
+
+    // Check if this is a Spotify algorithm playlist
+    if (playlistId.startsWith("37i9dQZF1D")) {
+      throw new Error(
+        "Spotify algorithm playlists (like Discover Weekly, Daily Mix, etc.) cannot be converted because they are user-specific and dynamically generated. Please use a regular user-created playlist instead."
+      );
+    }
+
+    return playlistId;
   }
 
   async getPlaylist(playlistUrl: string): Promise<SpotifyPlaylist> {
@@ -79,7 +88,9 @@ class SpotifyService {
       const playlistId = this.extractPlaylistId(playlistUrl);
       const token = await this.getAccessToken();
 
-      console.log(`🎵 Fetching Spotify playlist: ${playlistId}`);
+      console.log(
+        `🎵 Fetching Spotify playlist: ${playlistId} from URL: ${playlistUrl}`
+      );
 
       const response = await axios.get<SpotifyPlaylist>(
         `${this.baseUrl}/playlists/${playlistId}`,
@@ -106,19 +117,27 @@ class SpotifyService {
       );
       return playlist;
     } catch (error: any) {
+      console.error(
+        `❌ Error fetching playlist ID ${this.extractPlaylistId(
+          playlistUrl
+        )} from URL: ${playlistUrl}`
+      );
+      console.error(
+        `❌ Spotify API response:`,
+        error.response?.data || error.message
+      );
+
       if (error.response?.status === 404) {
         throw new Error(
-          "Playlist not found. Please check the URL and ensure the playlist is public."
+          `Playlist not found. Please check the URL and ensure the playlist is public. URL: ${playlistUrl}`
         );
       }
       if (error.response?.status === 403) {
-        throw new Error("Access denied. Please ensure the playlist is public.");
+        throw new Error(
+          `Access denied. Please ensure the playlist is public. URL: ${playlistUrl}`
+        );
       }
 
-      console.error(
-        "❌ Error fetching Spotify playlist:",
-        error.response?.data || error.message
-      );
       throw new Error(
         `Failed to fetch Spotify playlist: ${
           error.response?.data?.error?.message || error.message

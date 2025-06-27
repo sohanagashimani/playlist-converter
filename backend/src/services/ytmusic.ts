@@ -142,7 +142,16 @@ class YTMusicService {
       }
 
       if (onProgress) {
-        await onProgress(i + 1, videoIds.length, success, failed);
+        try {
+          await onProgress(i + 1, videoIds.length, success, failed);
+        } catch (error: any) {
+          if (error.message === "CONVERSION_CANCELLED") {
+            console.log(`⏹️ Stopping track addition due to cancellation`);
+            throw error; // Propagate the cancellation
+          }
+          // For other errors, just log and continue
+          console.warn(`⚠️ Progress callback error:`, error.message);
+        }
       }
 
       await new Promise(resolve => setTimeout(resolve, 500));

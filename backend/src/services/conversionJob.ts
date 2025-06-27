@@ -194,8 +194,9 @@ class ConversionJobService {
 
       if (this.isConversionCancelled(conversionId)) {
         console.log(
-          `⏹️ Conversion ${conversionId} cancelled after playlist creation`
+          `⏹️ Conversion ${conversionId} cancelled after playlist creation - playlist ${ytPlaylist.playlistId} will remain empty`
         );
+
         return;
       }
 
@@ -218,8 +219,9 @@ class ConversionJobService {
           console.log(
             `⏹️ Conversion ${conversionId} cancelled during track ${i + 1}/${
               tracks.length
-            }`
+            } - playlist ${ytPlaylist.playlistId} will remain empty`
           );
+
           return;
         }
 
@@ -295,44 +297,56 @@ class ConversionJobService {
       if (videoIds.length > 0) {
         if (this.isConversionCancelled(conversionId)) {
           console.log(
-            `⏹️ Conversion ${conversionId} cancelled before playlist addition`
+            `⏹️ Conversion ${conversionId} cancelled before playlist addition - playlist ${ytPlaylist.playlistId} will remain empty`
           );
+
           return;
         }
 
-        addResults = await ytmusicService.addTracksToPlaylist(
-          ytPlaylist.playlistId,
-          videoIds,
-          async (
-            current: number,
-            total: number,
-            success: number,
-            failed: number
-          ) => {
-            if (this.isConversionCancelled(conversionId)) {
-              console.log(
-                `⏹️ Conversion ${conversionId} cancelled during playlist addition (${current}/${total})`
-              );
-              return;
-            }
-
-            const addProgress = Math.floor(65 + (current / total) * 30);
-
-            await firestoreService.updateConversionStatus(
-              conversionId,
-              "converting-tracks",
-              addProgress,
-              {
-                message: `Adding tracks to playlist... (${current}/${total})`,
-                tracksProcessed: current,
-                tracksToAdd: total,
-                tracksAdded: success,
-                tracksFailed: failed,
-                currentTrack: null,
+        try {
+          addResults = await ytmusicService.addTracksToPlaylist(
+            ytPlaylist.playlistId,
+            videoIds,
+            async (
+              current: number,
+              total: number,
+              success: number,
+              failed: number
+            ) => {
+              if (this.isConversionCancelled(conversionId)) {
+                console.log(
+                  `⏹️ Conversion ${conversionId} cancelled during playlist addition (${current}/${total})`
+                );
+                throw new Error("CONVERSION_CANCELLED");
               }
+
+              const addProgress = Math.floor(65 + (current / total) * 30);
+
+              await firestoreService.updateConversionStatus(
+                conversionId,
+                "converting-tracks",
+                addProgress,
+                {
+                  message: `Adding tracks to playlist... (${current}/${total})`,
+                  tracksProcessed: current,
+                  tracksToAdd: total,
+                  tracksAdded: success,
+                  tracksFailed: failed,
+                  currentTrack: null,
+                }
+              );
+            }
+          );
+        } catch (error: any) {
+          if (error.message === "CONVERSION_CANCELLED") {
+            console.log(
+              `⏹️ Conversion ${conversionId} cancelled during track addition - playlist ${ytPlaylist.playlistId}`
             );
+
+            return;
           }
-        );
+          throw error; // Re-throw other errors
+        }
 
         await firestoreService.updateConversionStatus(
           conversionId,
