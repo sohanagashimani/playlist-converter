@@ -15,41 +15,29 @@ Convert your Spotify playlists to YouTube Music effortlessly! A modern full-stac
 
 ```mermaid
 graph TD
-    A["👤 User"] -->|"Paste Spotify URL"| B["💻 Frontend<br/>(React + TypeScript)"]
-    B -->|"POST /convert"| C["⚙️ Backend API<br/>(Express.js + TypeScript)"]
+    A["👤 User"] -->|"Spotify URL"| B["💻 Frontend"]
+    B -->|"Start Conversion"| C["⚙️ Backend"]
+    C -->|"Conversion ID"| B
+    C -->|"Background Job"| D["🔄 Conversion Process"]
 
-    C -->|"Conversion ID 🆔"| B
-    C -->|"Start Background Job 🔄"| H["⚙️ Background Process"]
+    D -->|"1. Get Spotify Tracks"| E["🎧 Spotify"]
+    D -->|"2. Search & Create"| F["🎶 YouTube Music"]
 
-    B -->|"Listen with Conversion ID"| G["🔥 Firebase Firestore"]
+    D -->|"Progress Updates"| G["📱 Real-time Updates"]
+    G -->|"Live Progress"| B
+    B -->|"Show Progress"| A
 
-    H -->|"Fetch Playlist Data"| D["🎧 Spotify Web API"]
-    D -->|"Track List"| H
-
-    H -->|"Create Conversion Job"| G
-    H -->|"Search & Create Playlist"| E["🐍 Python Microservice<br/>(Flask + ytmusicapi)"]
-
-    E -->|"YouTube Music API Calls"| F["🎶 YouTube Music"]
-    F -->|"Search Results & Playlist"| E
-
-    E -->|"Progress Updates"| H
-    H -->|"Update Progress in DB"| G
-    G -->|"Real-time Progress 📊"| B
-    B -->|"Live Updates Display"| A
-
-    E -->|"Final Results"| H
-    H -->|"Mark Complete"| G
-    G -->|"Completion Notification"| B
-    B -->|"YouTube Music Link 🎉"| A
+    D -->|"Complete"| G
+    G -->|"YouTube Link"| B
+    B -->|"Success! 🎉"| A
 
     style A fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
     style B fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
     style C fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
-    style D fill:#1DB954,stroke:#0F6032,stroke-width:2px,color:#fff
-    style E fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    style D fill:#795548,stroke:#3E2723,stroke-width:2px,color:#fff
+    style E fill:#1DB954,stroke:#0F6032,stroke-width:2px,color:#fff
     style F fill:#FF5722,stroke:#BF360C,stroke-width:2px,color:#fff
-    style G fill:#FFC107,stroke:#F57C00,stroke-width:2px,color:#000
-    style H fill:#795548,stroke:#3E2723,stroke-width:2px,color:#fff
+    style G fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
 ```
 
 ## 🚀 Tech Stack
@@ -183,7 +171,6 @@ curl http://localhost:8000/health
 
 - Check browser console for errors
 - Verify Spotify playlist is public
-- Ensure YouTube Music account has premium subscription
 
 **Python Service Issues?**
 
