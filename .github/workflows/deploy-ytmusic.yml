@@ -79,6 +79,3 @@ jobs:
             --member="allUsers" \
             --role="roles/run.invoker" \
             --region ${{ env.REGION }}
-
-      - name: Show Output
-        run: echo ${{ steps.deploy.outputs.url }}

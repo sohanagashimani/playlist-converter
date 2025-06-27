@@ -86,6 +86,3 @@ jobs:
 
       - name: Allow unauthenticated access
         run: gcloud run services add-iam-policy-binding ${{ env.SERVICE_NAME }} --member="allUsers" --role="roles/run.invoker" --region ${{env.REGION}}
-
-      - name: Show Output
-        run: echo ${{ steps.deploy.outputs.url }}
