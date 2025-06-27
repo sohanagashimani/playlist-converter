@@ -30,14 +30,6 @@ graph TD
     D -->|"Complete"| G
     G -->|"YouTube Link"| B
     B -->|"Success! 🎉"| A
-
-    style A fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
-    style B fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
-    style C fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
-    style D fill:#795548,stroke:#3E2723,stroke-width:2px,color:#fff
-    style E fill:#1DB954,stroke:#0F6032,stroke-width:2px,color:#fff
-    style F fill:#FF5722,stroke:#BF360C,stroke-width:2px,color:#fff
-    style G fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
 ```
 
 ## 🚀 Tech Stack
