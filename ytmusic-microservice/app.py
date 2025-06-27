@@ -231,9 +231,12 @@ def init_ytmusic():
         return False
 
 def normalize_string(s: str) -> str:
-    """Normalize string for better matching"""
-
-    return re.sub(r'[^\w\s]', '', s.lower().strip())
+    """Normalize string for better matching - less aggressive normalization"""
+    # Keep some punctuation that might be important for matching
+    s = re.sub(r'[^\w\s\-\'\&]', '', s.lower().strip())
+    # Remove extra whitespace
+    s = ' '.join(s.split())
+    return s
 
 def calculate_similarity(str1: str, str2: str) -> float:
     """Calculate similarity between two strings"""
@@ -242,14 +245,16 @@ def calculate_similarity(str1: str, str2: str) -> float:
     return SequenceMatcher(None, norm1, norm2).ratio()
 
 def find_best_match(query_title: str, query_artist: str, results: List[Dict]) -> Optional[Dict]:
-    """Find the best matching track from search results using similarity scoring"""
+    """Find the best matching track from search results using improved similarity scoring"""
     if not results:
         return None
     
     best_match = None
     best_score = 0.0
     
-    for result in results:
+    logger.info(f"🔍 Finding best match for: '{query_title}' by '{query_artist}'")
+    
+    for i, result in enumerate(results):
         try:
             # Extract title and artists
             result_title = result.get('title', '').strip()
@@ -271,20 +276,33 @@ def find_best_match(query_title: str, query_artist: str, results: List[Dict]) ->
             result_artist = ', '.join(artist_names)
             
             # Calculate similarity scores
-            title_similarity = calculate_similarity(
-                normalize_string(query_title),
-                normalize_string(result_title)
-            )
+            title_similarity = calculate_similarity(query_title, result_title)
             
-            artist_similarity = calculate_similarity(
-                normalize_string(query_artist),
-                normalize_string(result_artist)
-            )
+            # Improved artist matching - check individual artists too
+            artist_similarity = calculate_similarity(query_artist, result_artist)
             
-            # Combined score (title is weighted more heavily)
-            combined_score = (title_similarity * 0.7) + (artist_similarity * 0.3)
+            # Also check if any individual artist from query matches any result artist
+            query_artists = [a.strip() for a in query_artist.split(',')]
+            individual_artist_scores = []
             
-            logger.debug(f"🔍 Match candidate: '{result_title}' by '{result_artist}' - Score: {combined_score:.3f}")
+            for qa in query_artists:
+                for artist_name in artist_names:
+                    score = calculate_similarity(qa, artist_name)
+                    individual_artist_scores.append(score)
+            
+            # Use the best individual artist match if it's better
+            best_individual_artist = max(individual_artist_scores) if individual_artist_scores else 0.0
+            artist_similarity = max(artist_similarity, best_individual_artist)
+            
+            # Combined score with slightly more emphasis on title
+            combined_score = (title_similarity * 0.75) + (artist_similarity * 0.25)
+            
+            # Bonus for exact title match (case insensitive)
+            if normalize_string(query_title) == normalize_string(result_title):
+                combined_score += 0.1
+            
+            logger.info(f"🔍 Result {i+1}: '{result_title}' by '{result_artist}'")
+            logger.info(f"   Title sim: {title_similarity:.3f}, Artist sim: {artist_similarity:.3f}, Combined: {combined_score:.3f}")
             
             if combined_score > best_score:
                 best_score = combined_score
@@ -294,12 +312,14 @@ def find_best_match(query_title: str, query_artist: str, results: List[Dict]) ->
             logger.error(f"❌ Error processing search result: {str(e)}")
             continue
     
-    # Only return matches with reasonable similarity (threshold: 0.4)
-    if best_score >= 0.4:
-        logger.info(f"✅ Best match found with score {best_score:.3f}")
+    # Lower threshold for better matching (0.3 instead of 0.4)
+    if best_score >= 0.3 and best_match:
+        match_title = best_match.get('title', 'Unknown')
+        match_artists = ', '.join([a.get('name', '') if isinstance(a, dict) else str(a) for a in best_match.get('artists', [])])
+        logger.info(f"✅ Best match found with score {best_score:.3f}: '{match_title}' by '{match_artists}'")
         return best_match
     else:
-        logger.info(f"❌ No match above threshold (best score: {best_score:.3f})")
+        logger.info(f"❌ No match above threshold 0.3 (best score: {best_score:.3f})")
         return None
 
 
