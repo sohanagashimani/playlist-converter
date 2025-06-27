@@ -1,285 +1,212 @@
-# Playlist Converter
+# 🎵 Playlist Converter
 
-A full-stack application to convert Spotify playlists to YouTube Music playlists.
+Convert your Spotify playlists to YouTube Music effortlessly! A modern full-stack application with real-time progress tracking and smart song matching.
 
-## 🚀 Features
+## ✨ Features
 
-- **Easy Conversion**: Simply paste a public Spotify playlist URL
-- **Smart Matching**: Advanced fuzzy matching to find the best YouTube Music equivalents
-- **Real-time Progress**: Live updates during the conversion process
-- **Detailed Results**: See exactly which tracks were converted and which failed
-- **Public Playlists**: Creates public YouTube Music playlists for easy sharing
-- **Conversion Logs**: Keeps track of all conversions for reference
+- 🎯 **One-Click Conversion** - Just paste a Spotify playlist URL
+- 🧠 **Smart Matching** - Advanced fuzzy matching to find the best YouTube Music equivalents
+- ⚡ **Real-time Progress** - Live updates during conversion with detailed feedback
+- 📊 **Detailed Results** - See exactly which tracks were converted and which failed
+- 🔄 **Background Processing** - Long-running conversions with cancellation support
+- 🌐 **Modern UI** - Clean, responsive interface built with React and Ant Design
 
 ## 🏗️ Architecture
 
-- **Frontend**: React + TypeScript, Vite, Tailwind CSS, Ant Design
-- **Backend**: Express.js + TypeScript, REST API
-- **Python Microservice**: Flask + ytmusicapi for YouTube Music integration
-- **External APIs**: Spotify Web API (public playlists only)
+```mermaid
+graph TD
+    A["👤 User"] -->|"Paste Spotify URL"| B["💻 Frontend<br/>(React + TypeScript)"]
+    B -->|"POST /convert"| C["⚙️ Backend API<br/>(Express.js + TypeScript)"]
+
+    C -->|"Conversion ID 🆔"| B
+    C -->|"Start Background Job 🔄"| H["⚙️ Background Process"]
+
+    B -->|"Listen with Conversion ID"| G["🔥 Firebase Firestore"]
+
+    H -->|"Fetch Playlist Data"| D["🎧 Spotify Web API"]
+    D -->|"Track List"| H
+
+    H -->|"Create Conversion Job"| G
+    H -->|"Search & Create Playlist"| E["🐍 Python Microservice<br/>(Flask + ytmusicapi)"]
+
+    E -->|"YouTube Music API Calls"| F["🎶 YouTube Music"]
+    F -->|"Search Results & Playlist"| E
+
+    E -->|"Progress Updates"| H
+    H -->|"Update Progress in DB"| G
+    G -->|"Real-time Progress 📊"| B
+    B -->|"Live Updates Display"| A
+
+    E -->|"Final Results"| H
+    H -->|"Mark Complete"| G
+    G -->|"Completion Notification"| B
+    B -->|"YouTube Music Link 🎉"| A
+
+    style A fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+    style B fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    style C fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
+    style D fill:#1DB954,stroke:#0F6032,stroke-width:2px,color:#fff
+    style E fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    style F fill:#FF5722,stroke:#BF360C,stroke-width:2px,color:#fff
+    style G fill:#FFC107,stroke:#F57C00,stroke-width:2px,color:#000
+    style H fill:#795548,stroke:#3E2723,stroke-width:2px,color:#fff
+```
+
+## 🚀 Tech Stack
+
+| Component         | Technology                                           |
+| ----------------- | ---------------------------------------------------- |
+| **Frontend**      | React 18, TypeScript, Vite, Tailwind CSS, Ant Design |
+| **Backend**       | Express.js, TypeScript, Firebase Admin               |
+| **Microservice**  | Python 3.8+, Flask, ytmusicapi                       |
+| **Database**      | Firebase Firestore                                   |
+| **External APIs** | Spotify Web API, YouTube Music API                   |
+| **Deployment**    | Google Cloud Run, Firebase Hosting                   |
 
 ## 📋 Prerequisites
 
-Before running this application, you need:
+- **Node.js** 22+ and npm 10+
+- **Python** 3.8+
+- **Spotify API** credentials (Client ID & Secret)
+- **Google Cloud** account with Firebase project
+- **YouTube Music** account (free account works fine!)
 
-### 1. Spotify API Credentials ✅
+## ⚡ Quick Start
 
-- ✅ Already configured with your credentials
-- Client ID: `f97e23dc2f3f40518867efbcf3a4278a`
-
-### 2. YouTube Music Authentication ✅
-
-- ✅ OAuth authentication configured (oauth.json + oauth_credentials.json)
-
-### 3. Software Requirements
-
-- Node.js 18+
-- Python 3.8+
-- Docker (optional, for Python microservice)
-
-## 🔧 Quick Start
-
-### 1. Test YouTube Music Authentication
+### 1. Clone and Setup Environment
 
 ```bash
-# First, test if Python microservice is running
-curl http://localhost:8000/health
+git clone <your-repo-url>
+cd playlist-converter
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp ytmusic-microservice/.env.example ytmusic-microservice/.env
 ```
 
-### 2. Start Backend
+### 2. Configure Environment Variables
+
+**Backend (`backend/.env`):**
+
+```env
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+GOOGLE_APPLICATION_CREDENTIALS=your_base64_encoded_service_account
+```
+
+**Frontend (`frontend/.env`):**
+
+```env
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_PROJECT_ID=your_project_id
+# ... other Firebase config
+```
+
+### 3. Start All Services
 
 ```bash
-cd backend
-npm install
-npm run dev
+# Terminal 1: Backend
+cd backend && npm install && npm run dev
+
+# Terminal 2: Python Microservice
+cd ytmusic-microservice && pip install -r requirements.txt && python app.py
+
+# Terminal 3: Frontend
+cd frontend && npm install && npm run dev
 ```
 
-Backend runs on: `http://localhost:3001`
+### 4. Open the App! 🎉
 
-### 3. Start Python Microservice
-
-#### Option A: Using Docker (Recommended)
-
-```bash
-cd ytmusic-microservice
-docker-compose up --build
-```
-
-#### Option B: Local Python
-
-```bash
-cd ytmusic-microservice
-pip install -r requirements.txt
-python app.py
-```
-
-Microservice runs on: `http://localhost:8000`
-
-### 4. Start Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend runs on: `http://localhost:5173`
-
-### 5. Open the App! 🎉
-
-Visit: **http://localhost:5173**
+Visit **http://localhost:5173** and start converting playlists!
 
 ## 🎯 How to Use
 
-1. **Open the app** at `http://localhost:5173`
-2. **Check the health status** (top-right) - should show green
-3. **Get a Spotify playlist URL**:
-   - Open Spotify → Go to a **public** playlist
-   - Click "⋯" → Share → Copy link to playlist
-4. **Paste the URL** and click "Convert Playlist"
-5. **Wait for conversion** (shows real-time progress)
-6. **View results** and click the YouTube Music playlist link!
+1. **Get a Spotify playlist URL** (must be public)
+
+   ```
+   https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd
+   ```
+
+2. **Paste the URL** in the app and click "Convert Playlist"
+
+3. **Watch the magic happen** with real-time progress updates
+
+4. **Get your YouTube Music playlist** link when complete!
 
 ## 📁 Project Structure
 
 ```
 playlist-converter/
-├── backend/                 # Express.js API server
-│   ├── src/
-│   │   ├── routes/         # API routes
-│   │   ├── services/       # Spotify & YTMusic services
-│   │   ├── middleware/     # Error handling
-│   │   └── types/          # TypeScript types
-│   ├── .env               # Your Spotify credentials
-│   └── package.json
-├── frontend/               # React application
-│   ├── src/
-│   │   ├── components/    # UI components
-│   │   ├── services/      # API calls
-│   │   └── types/         # TypeScript types
-│   └── package.json
-├── ytmusic-microservice/   # Python Flask service
-│   ├── app.py            # Main Flask app
-│   ├── requirements.txt  # Python deps
-│   ├── Dockerfile        # Docker config
-│   └── docker-compose.yml # Docker Compose
-├── logs/                  # Conversion logs (auto-created)
-├── oauth.json            # ✅ YTMusic OAuth tokens
-├── oauth_credentials.json # ✅ Google OAuth credentials
-└── README.md
+├── 🖥️ frontend/          # React TypeScript app
+│   ├── src/components/   # UI components
+│   ├── src/services/     # API calls & Firebase
+│   └── src/types/        # TypeScript definitions
+│
+├── 🔧 backend/           # Express.js API server
+│   ├── src/routes/       # API endpoints
+│   ├── src/services/     # Business logic
+│   └── src/middleware/   # Error handling
+│
+├── 🐍 ytmusic-microservice/  # Python Flask service
+│   ├── app.py           # Main Flask application
+│   ├── auth/            # OAuth credentials
+│   └── requirements.txt # Python dependencies
+│
+└── 🚀 .github/workflows/    # CI/CD pipelines
 ```
 
-## 🚨 Troubleshooting
+## 🔧 API Endpoints
 
-### Common Issues:
+### Backend API (`localhost:3001/api`)
 
-**❌ "YouTube Music service unavailable"**
+- `POST /playlist/convert` - Start playlist conversion
+- `POST /playlist/cancel/:id` - Cancel conversion
+- `GET /playlist/health` - Service health check
 
-```bash
-# Check if Python service is running
-curl http://localhost:8000/health
+### Python Microservice (`localhost:8000`)
 
-# If not, restart it:
-cd ytmusic-microservice
-python app.py
-```
-
-**❌ "Invalid Spotify playlist URL"**
-
-- Make sure playlist is **public** in Spotify
-- Use full URL: `https://open.spotify.com/playlist/...`
-
-**❌ Docker issues**
-
-```bash
-# If docker-compose fails, run Python locally:
-cd ytmusic-microservice
-pip install -r requirements.txt
-export YTMUSIC_OAUTH_FILE=../oauth.json
-python app.py
-```
-
-**❌ Tracks not found**
-
-- This is normal! Not all Spotify tracks exist on YouTube Music
-- Check the detailed results to see what failed
-
-## 🔍 API Endpoints
-
-### Backend (Express.js)
-
-- `POST /api/playlist/convert` - Convert a playlist
-- `GET /api/playlist/logs` - View conversion history
-- `GET /api/playlist/health` - Check services
-
-### Python Microservice
-
-- `POST /search` - Search YouTube Music
-- `POST /create-playlist` - Create YT playlist
-- `POST /add-to-playlist` - Add tracks
+- `POST /search` - Search YouTube Music for tracks
+- `POST /create-playlist` - Create new YT Music playlist
+- `POST /add-to-playlist` - Add tracks to playlist
 - `GET /health` - Health check
 
-## 🎨 Features in Detail
+## ⚠️ Troubleshooting
 
-### ✨ Smart Matching
-
-- Uses fuzzy string matching to find the best YouTube Music equivalents
-- Compares track titles and artist names
-- Handles variations in spelling and formatting
-
-### 📊 Real-time Progress
-
-- Live updates during conversion
-- Shows current processing stage
-- Displays which track is being processed
-
-### 📋 Detailed Results
-
-- Success/failure statistics
-- Track-by-track conversion details
-- Links to original Spotify tracks and new YouTube Music matches
-- Conversion logs with timestamps
-
-### 🔗 Easy Sharing
-
-- Creates public YouTube Music playlists
-- Provides shareable URLs
-- Maintains playlist metadata
-
-## 🔐 Security & Privacy
-
-- ✅ Only accesses **public** Spotify playlists
-- ✅ No user login required
-- ✅ Spotify credentials are server-side only
-- ✅ YouTube Music playlists created under your account
-- ✅ No personal data stored
-
-## 🧪 Testing the Setup
-
-### 1. Test Backend
+**Service Health Check Fails?**
 
 ```bash
-curl http://localhost:3001/api/health
-# Should return: {"success": true, ...}
-```
-
-### 2. Test Python Service
-
-```bash
+# Check if all services are running
+curl http://localhost:3001/api/playlist/health
 curl http://localhost:8000/health
-# Should return: {"success": true, "status": "healthy", ...}
 ```
 
-### 3. Test Full Integration
+**Conversion Stuck?**
 
-Use this public Spotify playlist for testing:
+- Check browser console for errors
+- Verify Spotify playlist is public
+- Ensure YouTube Music account has premium subscription
 
-```
-https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M
-```
-
-## 📝 Development Scripts
-
-**Backend:**
+**Python Service Issues?**
 
 ```bash
-npm run dev        # Development server
-npm run build      # Build TypeScript
-npm start          # Production server
+# Reinstall dependencies
+cd ytmusic-microservice
+pip install --upgrade -r requirements.txt
 ```
 
-**Frontend:**
+## 🌟 Features in Detail
 
-```bash
-npm run dev        # Development server
-npm run build      # Build for production
-npm run preview    # Preview build
-```
+- **🎵 Smart Matching**: Uses fuzzy string matching for accurate song identification
+- **⚡ Real-time Updates**: Firebase Firestore for live progress tracking
+- **🔄 Background Jobs**: Long-running conversions with cancellation support
+- **📱 Responsive Design**: Works on desktop, tablet, and mobile
+- **🛡️ Error Handling**: Comprehensive error handling and user feedback
+- **📊 Progress Tracking**: Detailed conversion statistics and results
 
-**Python Service:**
+## 🚀 Deployment
 
-```bash
-python app.py                    # Run locally
-docker-compose up --build       # Run with Docker
-```
+The app is deployed on Google Cloud Platform:
 
-## 📊 Tech Stack
-
-| Component      | Technology                                        |
-| -------------- | ------------------------------------------------- |
-| Frontend       | React, TypeScript, Vite, Tailwind CSS, Ant Design |
-| Backend        | Express.js, TypeScript, Axios                     |
-| Python Service | Flask, ytmusicapi, Docker                         |
-| APIs           | Spotify Web API, YouTube Music (via ytmusicapi)   |
-| Storage        | JSON logs, local filesystem                       |
-
----
-
-## 🎵 Ready to Convert?
-
-1. **Start all services** (backend, Python, frontend)
-2. **Visit http://localhost:5173**
-3. **Paste a public Spotify playlist URL**
-4. **Watch the magic happen!** ✨
-
-Your Spotify playlists will be perfectly converted to YouTube Music with detailed tracking of what worked and what didn't. Enjoy! 🎶
+- **Frontend**: Firebase Hosting
+- **Backend**: Cloud Run (auto-scaling containers)
+- **Database**: Firebase Firestore
+- **CI/CD**: GitHub Actions
