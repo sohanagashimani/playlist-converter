@@ -34,7 +34,6 @@ class ApiService {
     }
   }
 
-  // New async conversion methods
   async startConversion(
     request: ConversionRequest
   ): Promise<{ conversionId: string }> {
@@ -92,7 +91,6 @@ class ApiService {
     return response.data || [];
   }
 
-  // Legacy synchronous conversion (keep for backward compatibility)
   async convertPlaylist(request: ConversionRequest): Promise<ConversionResult> {
     const response = await this.request<ConversionResult>("/playlist/convert", {
       method: "POST",
