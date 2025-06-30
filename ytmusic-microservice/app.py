@@ -13,6 +13,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 
 try:
     from ytmusicapi import YTMusic
