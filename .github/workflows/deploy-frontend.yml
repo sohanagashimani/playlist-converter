@@ -1,12 +1,13 @@
 name: Deploy Frontend to Firebase Hosting
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "frontend/**"
-      - ".github/workflows/deploy-frontend.yml"
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "frontend/**"
+  #     - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
 
 env:
   PROJECT_ID: resounding-age-438010-g3

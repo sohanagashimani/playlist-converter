@@ -1,12 +1,13 @@
 name: Deploy YTMusic Microservice to Cloud Run
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "ytmusic-microservice/**"
-      - ".github/workflows/deploy-ytmusic.yml"
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "ytmusic-microservice/**"
+  #     - ".github/workflows/deploy-ytmusic.yml"
+  workflow_dispatch:
 
 env:
   PROJECT_ID: resounding-age-438010-g3

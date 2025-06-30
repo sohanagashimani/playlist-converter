@@ -1,12 +1,13 @@
 name: Deploy Backend to Cloud Run
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "backend/**"
-      - ".github/workflows/deploy-backend.yml"
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "backend/**"
+  #     - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
 
 env:
   PROJECT_ID: resounding-age-438010-g3
