@@ -525,20 +525,23 @@ def internal_error(error):
         'error': 'Internal server error'
     }), 500
 
+# Initialize services on startup
+logger.info("🚀 Starting YTMusic Microservice...")
+
+firestore_ready = init_firestore()
+ytmusic_ready = init_ytmusic()
+
+if not ytmusic_ready:
+    logger.error("❌ YTMusic initialization failed!")
+    exit(1)
+
+if not firestore_ready:
+    logger.warning("⚠️ Firestore initialization failed - continuing without Firestore")
+
+logger.info("✅ YTMusic service initialized successfully")
+
 if __name__ == '__main__':
-    logger.info("🚀 Starting YTMusic Microservice...")
-    
-    # Initialize services
-    firestore_ready = init_firestore()
-    ytmusic_ready = init_ytmusic()
-    
-    if not ytmusic_ready:
-        logger.error("❌ YTMusic initialization failed!")
-        exit(1)
-    
-    if not firestore_ready:
-        logger.warning("⚠️ Firestore initialization failed - continuing without Firestore")
-    
+    # This will only run for local development
     port = int(os.getenv('PORT', 8000))
-    logger.info(f"🎵 YTMusic service starting on port {port}")
+    logger.info(f"🎵 YTMusic service starting on port {port} (development mode)")
     app.run(host='0.0.0.0', port=port, debug=False) 

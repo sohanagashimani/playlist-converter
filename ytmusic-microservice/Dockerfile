@@ -18,5 +18,5 @@ RUN mkdir -p auth
 # Expose port
 EXPOSE 8080
 
-# Start the application
-CMD ["python", "app.py"] 
+# Start the application with gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "300", "app:app"] 
