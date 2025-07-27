@@ -189,3 +189,11 @@ The app is deployed on Google Cloud Platform:
 - **Backend**: Cloud Run (auto-scaling containers)
 - **Database**: Firebase Firestore
 - **CI/CD**: GitHub Actions
+
+## 🚀 What's Next / WIP
+
+- **🔄 Bidirectional Conversion** - Convert YouTube Music playlists back to Spotify
+- **🎨 Dark Mode** - Optional dark theme
+- **🔒 Security** - Implement Firebase App Check to prevent API abuse and bot attacks
+
+_Have a simple feature request? [Open an issue](https://github.com/your-repo/issues)!_
